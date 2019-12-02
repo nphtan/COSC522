@@ -1,30 +1,37 @@
 import csv
 import numpy as np
 import timeit
+from random import randint
+from dim_reduction import *
+from knn import KNN
+from mpp import MPP
 
 def filter_retweets(data):
     no_rt = []
     for sample in data:
-        tweet = sample[1]
-        if tweet.count('RT') == 0:
+        retweet = sample[2]
+        if retweet == 'False':
             no_rt.append(sample)
+        else:
+            print("retweet")
     return no_rt
 
 def extract_features(data):
-    features = np.zeros((5,len(data)))
+    features = np.zeros((7,len(data)))
     for i in range(0,len(data)):
-        tweet = data[i][1]
+        tweet = data[i][3]
         upper = 0
         for word in tweet.split():
             if word.isupper():
                 upper += 1
         features[0,i] = tweet.count('!')
-#        features[1,i] = tweet.lower().count('collusion')
-        features[1,i] = tweet.lower().count('collusion') + tweet.lower().count('fake news') + tweet.lower().count('quid pro quo') + tweet.lower().count('russia')
+        features[1,i] = tweet.lower().count('pic.twitter.com')
         features[2,i] = tweet.count('@')
         features[3,i] = upper
-        features[4,i] = tweet.lower().count('maga') + tweet.lower().count('make america great again') + tweet.lower().count('#makeamericagreatagain') + tweet.lower().count('make #americagreatagain')
-#        features[5,i] = tweet.lower().count('great')
+        features[4,i] = tweet.lower().count('http')
+        features[5,i] = tweet.count('#')
+        features[6,i] = len(tweet) 
+#        features[6,i] = tweet.lower().count('maga') + tweet.lower().count('make america great again') + tweet.lower().count('makeamericagreatagain') + tweet.lower().count('make #americagreatagain') + tweet.lower().count('make america') + tweet.lower().count('great again')
     return features
 
 def standardize(data, mean, sigma):
@@ -51,220 +58,196 @@ def perf_eval(predict, true):
                 fp += 1
     return (tp,tn,fn,fp)
 
-class PCA:
-    w = ''
-    tol = 0
-    eigenvalues = ''
-    eigenvectors = ''
-    mean = ''
-    decomp = ''
-
-    def __init__(self, decomp='eig'):
-        self.w = 0
-        self.tol = 0
-        self.decomp = decomp
-
-    def reset(self):
-        self.w = 0
-        self.tol = 0
-
-    def get_w(self):
-        return self.w
-
-    def get_tol(self):
-        return self.tol
-
-    def setup(self, x, tol):
-        self.tol = tol
-        sigma = np.zeros((x.shape[0],x.shape[0]))
-        mean = np.mean(x, axis=1).reshape((x.shape[0], 1))
-        self.mean = mean
-        eigval = 0
-        eigvec = 0
-        if self.decomp == 'eig':
-            print('PCA: using eigenvalue decomposition')
-            for i in range(0, x.shape[1]):
-                diff = x[:,i].reshape((x.shape[0],1)) - mean
-                sigma += diff.dot(diff.T)
-            sigma = (1/x.shape[1])*sigma
-            eigval,eigvec = np.linalg.eig(sigma)
-        else:
-            print('PCA: using SVD')
-            u,s,vt = np.linalg.svd(x.T,full_matrices=False)
-            eigval = s*s/(x.shape[1]-1)
-            eigvec = vt.T
-        eigsum = np.sum(eigval)
-        order = np.argsort(eigval)[::-1]
-        eigvec = eigvec[:,order]
-        eigval = eigval[order]
-        self.eigenvalues = eigval
-        self.eigenvectors = eigvec
-        n = x.shape[0]
-        while np.sum(eigval[0:n])/eigsum > self.tol:
-            n -= 1
-        n+=1
-        self.w = eigvec[:,0:n]
-
-    def reduce(self, data):
-        return self.w.T.dot(data)
-
-class FLD:
-    w = ''
-    sigma = ''
-    mean0 = 0
-    mean1 = 0
-    s0 = 0
-    s1 = 0
-
-    def __init__(self):
-        self.w = 0
-
-    def reset(self):
-        self.w = 0
-
-    def setup(self, x, xclass):
-        num_var = x.shape[0]
-        samples0 = np.array([x[:,i] for i in range(0, x.shape[1]) if xclass[i] == 0]).T
-        samples1 = np.array([x[:,i] for i in range(0, x.shape[1]) if xclass[i] == 1]).T
-        mean0 = np.mean(samples0, axis=1).reshape((num_var, 1))
-        mean1 = np.mean(samples1, axis=1).reshape((num_var, 1))
-        self.mean0 = mean0
-        self.mean1 = mean1
-        S0 = np.zeros((num_var, num_var))
-        S1 = np.zeros((num_var, num_var))
-        for i in range(0, samples0.shape[1]):
-            diff = samples0[:,i].reshape((num_var,1)) - mean0
-            S0 = np.add(np.dot(diff, diff.T), S0)
-        for i in range(0, samples1.shape[1]):
-            diff = samples1[:,i].reshape((num_var,1)) - mean1
-            S1 = np.add(np.dot(diff, diff.T), S1)
-        self.s0 = S0
-        self.s1 = S1
-        Sw = S0 + S1
-        self.sigma = Sw
-        self.w = np.linalg.inv(Sw).dot(mean0-mean1)
-
-    def reduce(self, data):
-        return self.w.T.dot(data)
-
-class KNN:
-    k = 0
-    xdata = 0
-    ydata = 0
-    mean = 0
-    sigma = 0
-    prior0 = -1
-    prior1 = -1
-    class0percent = -1
-    class1percent = -1
-
-    def __init__(self, k, prior0 = -1, prior1 = -1):
-        self.k = k
-        self.prior0 = prior0
-        self.prior1 = prior1
-
-    def set_k(self, k):
-        self.k = k
-
-    def set_prior(self, p0, p1):
-        self.prior0 = p0
-        self.prior1 = p1
-
-    def standardize(self, data):
-        for i in range(0, data.shape[1]):
-            x = data[:,i].reshape(self.mean.shape)
-            data[:,i] = ((x-self.mean)/self.sigma).reshape(x.shape[0])
-
-    def fit(self, xtrain, ytrain):
-        self.ydata = ytrain
-        self.xdata = xtrain
-        samples0 = np.array([xtrain[:,i] for i in range(0, xtrain.shape[1]) if ytrain[i] == 0]).T
-        samples1 = np.array([xtrain[:,i] for i in range(0, xtrain.shape[1]) if ytrain[i] == 1]).T
-        # Save N_k/N for different prior probabilities
-        self.class0percent = samples0.shape[0]/(samples0.shape[0]+samples1.shape[0])
-        self.class1percent = samples1.shape[0]/(samples0.shape[0]+samples1.shape[0])
-
-    def predict(self, xtest):
-        start = timeit.default_timer()
-        ytest = np.zeros(xtest.shape[1])
-        # For each test sample
-        for i in range(0, xtest.shape[1]):
-            x = xtest[:,i]
-            distance = np.zeros((self.xdata.shape[1],1))
-            # Compute distance from each training sample to test sample
-            for j in range(0, self.xdata.shape[1]):
-                distance[j] = np.linalg.norm(x-self.xdata[:,j], ord=2)
-            # Find k nearest neighbors
-            nearest = distance.argsort(axis=0)[:self.k]
-            num0 = 0
-            num1 = 0
-            # Compute which class based on number of neighbors
-            for a in range(0,self.k):
-                if self.ydata[nearest[a]] == 0:
-                    num0 += 1
-                else:
-                    num1 += 1
-            if self.prior0 == -1:
-                if num0 == num1:
-                    ytest[i] = self.ydata[nearest[0]]
-                elif num0 > num1:
-                    ytest[i] = 0
-                else:
-                    ytest[i] = 1
-            else:
-                # Calculate a-priori probability for user set prior probabilities
-                p0 = self.prior0*(num0*self.k)/self.class0percent
-                p1 = self.prior1*(num1*self.k)/self.class1percent
-                if p0 == p1:
-                    ytest[i] = self.ydata[nearest[0]]
-                elif p0 > p1:
-                    ytest[i] = 0
-                else:
-                    ytest[i] = 1
-        stop = timeit.default_timer()
-        print('KNN run time: ', stop-start, 's')
-        return ytest
-
 def main():
+    dt_tweets = []
+    hc_tweets = []
+    kk_tweets = []
+    ndgt_tweets = []
+    rd_tweets = []
+    sk_tweets = []
+    with open('DonaldTrumpDataSet.csv', 'r', encoding='utf8', errors='ignore') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+            dt_tweets.append(row)
+    with open('HillaryClintonDataSet.csv', 'r', encoding='utf8', errors='ignore') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+            hc_tweets.append(row)
+    with open('KimKardashianDataSet.csv', 'r', encoding='utf8', errors='ignore') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+            kk_tweets.append(row)
+    with open('NeildeGrasseTysonDataSet.csv', 'r', encoding='utf8', errors='ignore') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+            ndgt_tweets.append(row)
+    with open('RichardDawkinsDataSet.csv', 'r', encoding='utf8', errors='ignore') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+            rd_tweets.append(row)
+    with open('ScottKellyDataSet.csv', 'r', encoding='utf8', errors='ignore') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+            sk_tweets.append(row)
+
+    dt_tweets.pop(0)
+    hc_tweets.pop(0)
+    kk_tweets.pop(0)
+    ndgt_tweets.pop(0)
+    rd_tweets.pop(0)
+    sk_tweets.pop(0)
+    print(len(dt_tweets))
+    print(len(hc_tweets))
+    print(len(kk_tweets))
+    print(len(ndgt_tweets))
+    print(len(rd_tweets))
+    print(len(sk_tweets))
+
+    dt_nort_tweets   = filter_retweets(dt_tweets)
+    hc_nort_tweets   = filter_retweets(hc_tweets)
+    kk_nort_tweets   = filter_retweets(kk_tweets)
+    ndgt_nort_tweets = filter_retweets(ndgt_tweets)
+    rd_nort_tweets   = filter_retweets(rd_tweets)
+    sk_nort_tweets   = filter_retweets(sk_tweets)
+
+    num_train_tweets = 12000
+    num_train_person = 2000
+    num_train_other = int((num_train_tweets - num_train_person)/5)
+
+    num_test_tweets = 1200
+    num_test_person = 200
+    num_test_other = int((num_test_tweets - num_test_person)/5)
 
     data = []
-    test_data = []
-    with open('ObTr1.csv', 'r', encoding='utf8', errors='ignore') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        for row in reader:
-            data.append(row)
-    with open('trump_hillary_tweets.csv', 'r', encoding='utf8', errors='ignore') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        for row in reader:
-            test_data.append(row)
+    for i in range(0,num_train_other):
+        data.append(kk_tweets[randint(0,len(kk_tweets)-1)])
+
+    for i in range(0,num_train_person):
+        data.append(dt_tweets[randint(0,len(dt_tweets)-1)])
+
+    for i in range(0,num_train_other):
+        data.append(hc_tweets[randint(0,len(hc_tweets)-1)])
+
+    for i in range(0,num_train_other):
+        data.append(ndgt_tweets[randint(0,len(ndgt_tweets)-1)])
+
+    for i in range(0,num_train_other):
+        data.append(rd_tweets[randint(0,len(rd_tweets)-1)])
+
+    for i in range(0,num_train_other):
+        data.append(sk_tweets[randint(0,len(sk_tweets)-1)])
     
-    data.pop(0)
-    test_data.pop(0)
+    true_labels = np.zeros(len(data))
+    for i in range(0, num_train_person):
+        true_labels[i] = 1
 
-    full_data = data
-    no_rt_data = filter_retweets(data)
+    nort_data = []
+    for i in range(0,num_train_other):
+        nort_data.append(kk_nort_tweets[randint(0,len(kk_nort_tweets)-1)])
 
-    test_labels = np.ones(len(test_data))
-    for i in range(0,len(test_data)):
-        test_labels[i] = test_data[i][2]
-    true_labels = np.ones(len(data))
-    for i in range(0,len(data)):
-        true_labels[i] = data[i][2]
-    no_rt_labels = np.ones(len(no_rt_data))
-    for i in range(0,len(no_rt_data)):
-        no_rt_labels[i] = no_rt_data[i][2]
+    for i in range(0,num_train_person):
+        nort_data.append(dt_nort_tweets[randint(0,len(dt_nort_tweets)-1)])
+
+    for i in range(0,num_train_other):
+        nort_data.append(hc_nort_tweets[randint(0,len(hc_nort_tweets)-1)])
+
+    for i in range(0,num_train_other):
+        nort_data.append(ndgt_nort_tweets[randint(0,len(ndgt_nort_tweets)-1)])
+
+    for i in range(0,num_train_other):
+        nort_data.append(rd_nort_tweets[randint(0,len(rd_nort_tweets)-1)])
+
+    for i in range(0,num_train_other):
+        nort_data.append(sk_nort_tweets[randint(0,len(sk_nort_tweets)-1)])
+    
+    nort_train_labels = np.zeros(len(nort_data))
+    for i in range(0, num_train_person):
+        nort_train_labels[i] = 1
+
+    test_data = []
+    for i in range(0,num_test_other):
+        test_data.append(kk_tweets[randint(0,len(kk_tweets)-1)])
+
+    for i in range(0,num_test_person):
+        test_data.append(dt_tweets[randint(0,len(dt_tweets)-1)])
+
+    for i in range(0,num_test_other):
+        test_data.append(hc_tweets[randint(0,len(hc_tweets)-1)])
+
+    for i in range(0,num_test_other):
+        test_data.append(ndgt_tweets[randint(0,len(ndgt_tweets)-1)])
+
+    for i in range(0,num_test_other):
+        test_data.append(rd_tweets[randint(0,len(rd_tweets)-1)])
+
+    for i in range(0,num_test_other):
+        test_data.append(sk_tweets[randint(0,len(sk_tweets)-1)])
+    
+    test_labels = np.zeros(len(test_data))
+    for i in range(0, num_test_person):
+        test_labels[i] = 1
+
+    nort_test_data = []
+    for i in range(0,num_test_other):
+        nort_test_data.append(kk_nort_tweets[randint(0,len(kk_nort_tweets)-1)])
+
+    for i in range(0,num_test_person):
+        nort_test_data.append(dt_nort_tweets[randint(0,len(dt_nort_tweets)-1)])
+
+    for i in range(0,num_test_other):
+        nort_test_data.append(hc_nort_tweets[randint(0,len(hc_nort_tweets)-1)])
+
+    for i in range(0,num_test_other):
+        nort_test_data.append(ndgt_nort_tweets[randint(0,len(ndgt_nort_tweets)-1)])
+
+    for i in range(0,num_test_other):
+        nort_test_data.append(rd_nort_tweets[randint(0,len(rd_nort_tweets)-1)])
+
+    for i in range(0,num_test_other):
+        nort_test_data.append(sk_nort_tweets[randint(0,len(sk_nort_tweets)-1)])
+    
+    nort_test_labels = np.zeros(len(nort_test_data))
+    for i in range(0, num_test_person):
+        nort_test_labels[i] = 1
+
+#    data = []
+#    test_data = []
+#    with open('ObTr1.csv', 'r', encoding='utf8', errors='ignore') as csvfile:
+#        reader = csv.reader(csvfile, delimiter=',')
+#        for row in reader:
+#            data.append(row)
+#    with open('trump_hillary_tweets.csv', 'r', encoding='utf8', errors='ignore') as csvfile:
+#        reader = csv.reader(csvfile, delimiter=',')
+#        for row in reader:
+#            test_data.append(row)
+#    
+#    data.pop(0)
+#    test_data.pop(0)
+#
+#    full_data = data
+#    no_rt_data = filter_retweets(data)
+#
+#    test_labels = np.ones(len(test_data))
+#    for i in range(0,len(test_data)):
+#        test_labels[i] = test_data[i][2]
+#    true_labels = np.ones(len(data))
+#    for i in range(0,len(data)):
+#        true_labels[i] = data[i][2]
+#    no_rt_labels = np.ones(len(no_rt_data))
+#    for i in range(0,len(no_rt_data)):
+#        no_rt_labels[i] = no_rt_data[i][2]
     
     features = extract_features(data)
-    no_rt_features = extract_features(no_rt_data)
+    nort_features = extract_features(nort_data)
     test_features = extract_features(test_data)
     test_features2 = test_features
 
     mean = np.mean(features, axis=1).reshape((features.shape[0],1))
     sigma = np.std(features, axis=1).reshape((features.shape[0],1))
-    mean2 = np.mean(no_rt_features, axis=1).reshape((no_rt_features.shape[0],1))
-    sigma2 = np.std(no_rt_features, axis=1).reshape((no_rt_features.shape[0],1))
+    mean2 = np.mean(nort_features, axis=1).reshape((nort_features.shape[0],1))
+    sigma2 = np.std(nort_features, axis=1).reshape((nort_features.shape[0],1))
     standardize(features, mean, sigma)
-    standardize(no_rt_features, mean2, sigma2)
+    standardize(nort_features, mean2, sigma2)
     standardize(test_features, mean, sigma)
     standardize(test_features2, mean2, sigma2)
 
@@ -274,30 +257,55 @@ def main():
 #    test_features = fld.reduce(test_features)
 #
 #    fld2 = FLD()
-#    fld2.setup(no_rt_features, no_rt_labels)
-#    no_rt_features = fld.reduce(no_rt_features)
+#    fld2.setup(nort_features, nort_train_labels)
+#    nort_features = fld.reduce(nort_features)
 #    test_features2 = fld.reduce(test_features2)
 
-    pca = PCA()
-    pca.setup(features, 0.8)
-    features = pca.reduce(features)
-    test_features = pca.reduce(test_features)
-
-    pca2 = PCA()
-    pca2.setup(no_rt_features, 0.8)
-    no_rt_features = pca.reduce(no_rt_features)
-    test_features2 = pca.reduce(test_features2)
+#    pca = PCA()
+#    pca.setup(features, 0.9)
+#    features = pca.reduce(features)
+#    test_features = pca.reduce(test_features)
+#
+#    pca2 = PCA()
+#    pca2.setup(nort_features, 0.9)
+#    nort_features = pca.reduce(nort_features)
+#    test_features2 = pca.reduce(test_features2)
 
     k = 3
-    print(k)
+    print("KNN: k =",k)
     knn_model = KNN(k)
     knn_model.fit(features, true_labels)
     ymodel = knn_model.predict(test_features)
     tp,tn,fn,fp = perf_eval(ymodel, test_labels)
     print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+
     knn_model2 = KNN(k)
-    knn_model2.fit(no_rt_features, no_rt_labels)
+    knn_model2.fit(nort_features, nort_train_labels)
     ymodel = knn_model2.predict(test_features2)
+    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+
+    print("MPP case 1")
+    mpp = MPP(1)
+#    mpp.set_prior(5/6, 1/6)
+    mpp.fit(features, true_labels)
+    ymodel = mpp.predict(test_features)
+    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+
+    print("MPP case 2")
+    mpp = MPP(2)
+#    mpp.set_prior(5/6, 1/6)
+    mpp.fit(features, true_labels)
+    ymodel = mpp.predict(test_features)
+    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+
+    print("MPP case 3")
+    mpp = MPP(3)
+#    mpp.set_prior(5/6, 1/6)
+    mpp.fit(features, true_labels)
+    ymodel = mpp.predict(test_features)
     tp,tn,fn,fp = perf_eval(ymodel, test_labels)
     print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
 
