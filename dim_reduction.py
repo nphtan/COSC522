@@ -50,6 +50,7 @@ class PCA:
         while np.sum(eigval[0:n])/eigsum > self.tol:
             n -= 1
         n+=1
+        print(np.sum(eigval[0:n])/eigsum)
         self.w = eigvec[:,0:n]
 
     def reduce(self, data):

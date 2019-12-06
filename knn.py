@@ -38,8 +38,7 @@ class KNN:
         self.class0percent = samples0.shape[0]/(samples0.shape[0]+samples1.shape[0])
         self.class1percent = samples1.shape[0]/(samples0.shape[0]+samples1.shape[0])
 
-    def predict(self, xtest):
-        start = timeit.default_timer()
+    def predict(self, xtest, norm=2):
         ytest = np.zeros(xtest.shape[1])
         # For each test sample
         for i in range(0, xtest.shape[1]):
@@ -75,7 +74,28 @@ class KNN:
                     ytest[i] = 0
                 else:
                     ytest[i] = 1
-        stop = timeit.default_timer()
-        print('KNN run time: ', stop-start, 's')
         return ytest
+    
+    def predict_prob(self, xtest, norm=2):
+        ytest = np.zeros(xtest.shape[1])
+        probs = np.zeros((xtest.shape[1],2), dtype=np.float64)
+        # For each test sample
+        for i in range(0, xtest.shape[1]):
+            x = xtest[:,i]
+            distance = np.zeros((self.xdata.shape[1],1))
+            # Compute distance from each training sample to test sample
+            for j in range(0, self.xdata.shape[1]):
+                distance[j] = np.linalg.norm(x-self.xdata[:,j], ord=2)
+            # Find k nearest neighbors
+            nearest = distance.argsort(axis=0)[:self.k]
+            num0 = 0
+            num1 = 0
+            for a in range(0,self.k):
+                if self.ydata[nearest[a]] == 0:
+                    num0 += 1
+                else:
+                    num1 += 1
+            probs[i,0] = num0/self.k
+            probs[i,1] = num1/self.k
+        return probs
 

@@ -5,6 +5,13 @@ from random import randint
 from dim_reduction import *
 from knn import KNN
 from mpp import MPP
+from sklearn import svm
+from sklearn.metrics import roc_curve
+from bpnn import Network
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+
+mpl.use('Qt4Agg')
 
 def filter_retweets(data):
     no_rt = []
@@ -12,8 +19,6 @@ def filter_retweets(data):
         retweet = sample[2]
         if retweet == 'False':
             no_rt.append(sample)
-        else:
-            print("retweet")
     return no_rt
 
 def extract_features(data):
@@ -57,6 +62,14 @@ def perf_eval(predict, true):
             else:
                 fp += 1
     return (tp,tn,fn,fp)
+
+def plot_roc(f_rate, t_rate):
+    plt.plot(f_rate, t_rate, color='orange', label='ROC')
+    plt.plot([0,1],[0,1], color='darkblue', linestyle='--')
+    plt.xlabel('False Positive Rate')
+    plt.xlabel('True Positive Rate')
+    plt.title('ROC Curve')
+    plt.legend()
 
 def main():
     dt_tweets = []
@@ -119,14 +132,14 @@ def main():
     num_test_other = int((num_test_tweets - num_test_person)/5)
 
     data = []
-    for i in range(0,num_train_other):
-        data.append(kk_tweets[randint(0,len(kk_tweets)-1)])
-
     for i in range(0,num_train_person):
         data.append(dt_tweets[randint(0,len(dt_tweets)-1)])
 
     for i in range(0,num_train_other):
         data.append(hc_tweets[randint(0,len(hc_tweets)-1)])
+
+    for i in range(0,num_train_other):
+        data.append(kk_tweets[randint(0,len(kk_tweets)-1)])
 
     for i in range(0,num_train_other):
         data.append(ndgt_tweets[randint(0,len(ndgt_tweets)-1)])
@@ -142,14 +155,14 @@ def main():
         true_labels[i] = 1
 
     nort_data = []
-    for i in range(0,num_train_other):
-        nort_data.append(kk_nort_tweets[randint(0,len(kk_nort_tweets)-1)])
-
     for i in range(0,num_train_person):
         nort_data.append(dt_nort_tweets[randint(0,len(dt_nort_tweets)-1)])
 
     for i in range(0,num_train_other):
         nort_data.append(hc_nort_tweets[randint(0,len(hc_nort_tweets)-1)])
+
+    for i in range(0,num_train_other):
+        nort_data.append(kk_nort_tweets[randint(0,len(kk_nort_tweets)-1)])
 
     for i in range(0,num_train_other):
         nort_data.append(ndgt_nort_tweets[randint(0,len(ndgt_nort_tweets)-1)])
@@ -165,14 +178,14 @@ def main():
         nort_train_labels[i] = 1
 
     test_data = []
-    for i in range(0,num_test_other):
-        test_data.append(kk_tweets[randint(0,len(kk_tweets)-1)])
-
     for i in range(0,num_test_person):
         test_data.append(dt_tweets[randint(0,len(dt_tweets)-1)])
 
     for i in range(0,num_test_other):
         test_data.append(hc_tweets[randint(0,len(hc_tweets)-1)])
+
+    for i in range(0,num_test_other):
+        test_data.append(kk_tweets[randint(0,len(kk_tweets)-1)])
 
     for i in range(0,num_test_other):
         test_data.append(ndgt_tweets[randint(0,len(ndgt_tweets)-1)])
@@ -188,14 +201,14 @@ def main():
         test_labels[i] = 1
 
     nort_test_data = []
-    for i in range(0,num_test_other):
-        nort_test_data.append(kk_nort_tweets[randint(0,len(kk_nort_tweets)-1)])
-
     for i in range(0,num_test_person):
         nort_test_data.append(dt_nort_tweets[randint(0,len(dt_nort_tweets)-1)])
 
     for i in range(0,num_test_other):
         nort_test_data.append(hc_nort_tweets[randint(0,len(hc_nort_tweets)-1)])
+
+    for i in range(0,num_test_other):
+        nort_test_data.append(kk_nort_tweets[randint(0,len(kk_nort_tweets)-1)])
 
     for i in range(0,num_test_other):
         nort_test_data.append(ndgt_nort_tweets[randint(0,len(ndgt_nort_tweets)-1)])
@@ -209,33 +222,6 @@ def main():
     nort_test_labels = np.zeros(len(nort_test_data))
     for i in range(0, num_test_person):
         nort_test_labels[i] = 1
-
-#    data = []
-#    test_data = []
-#    with open('ObTr1.csv', 'r', encoding='utf8', errors='ignore') as csvfile:
-#        reader = csv.reader(csvfile, delimiter=',')
-#        for row in reader:
-#            data.append(row)
-#    with open('trump_hillary_tweets.csv', 'r', encoding='utf8', errors='ignore') as csvfile:
-#        reader = csv.reader(csvfile, delimiter=',')
-#        for row in reader:
-#            test_data.append(row)
-#    
-#    data.pop(0)
-#    test_data.pop(0)
-#
-#    full_data = data
-#    no_rt_data = filter_retweets(data)
-#
-#    test_labels = np.ones(len(test_data))
-#    for i in range(0,len(test_data)):
-#        test_labels[i] = test_data[i][2]
-#    true_labels = np.ones(len(data))
-#    for i in range(0,len(data)):
-#        true_labels[i] = data[i][2]
-#    no_rt_labels = np.ones(len(no_rt_data))
-#    for i in range(0,len(no_rt_data)):
-#        no_rt_labels[i] = no_rt_data[i][2]
     
     features = extract_features(data)
     nort_features = extract_features(nort_data)
@@ -262,52 +248,199 @@ def main():
 #    test_features2 = fld.reduce(test_features2)
 
 #    pca = PCA()
-#    pca.setup(features, 0.9)
+#    pca.setup(features, 0.8)
 #    features = pca.reduce(features)
 #    test_features = pca.reduce(test_features)
+#    print(pca.eigenvalues)
 #
 #    pca2 = PCA()
-#    pca2.setup(nort_features, 0.9)
+#    pca2.setup(nort_features, 0.8)
 #    nort_features = pca.reduce(nort_features)
 #    test_features2 = pca.reduce(test_features2)
+#    print(pca2.eigenvalues)
+
+#    print("SVM linear")
+#    clf = svm.SVC(kernel='linear')
+#    clf.probability = True
+#    clf.fit(features.T, true_labels)
+#    ymodel = clf.predict(test_features.T)
+#    prob = clf.predict_proba(test_features.T)
+#    print(prob)
+#    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#    print(fper)
+#    print(tper)
+#    plt.figure()
+#    plot_roc(fper, tper)
+#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print('TP:',tp)
+#    print('TN:',tn)
+#    print('FP:',fp)
+#    print('FN:',fn)
+#
+#    print("SVM poly")
+#    clf = svm.SVC(kernel='poly')
+#    clf.probability = True
+#    clf.fit(features.T, true_labels)
+#    ymodel = clf.predict(test_features.T)
+#    prob = clf.predict_proba(test_features.T)
+#    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#    plt.figure()
+#    plot_roc(fper, tper)
+#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print('TP:',tp)
+#    print('TN:',tn)
+#    print('FP:',fp)
+#    print('FN:',fn)
+#
+#    print("SVM rbf")
+#    clf = svm.SVC(kernel='rbf')
+#    clf.probability = True
+#    clf.fit(features.T, true_labels)
+#    ymodel = clf.predict(test_features.T)
+#    prob = clf.predict_proba(test_features.T)
+#    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#    plt.figure()
+#    plot_roc(fper, tper)
+#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print('TP:',tp)
+#    print('TN:',tn)
+#    print('FP:',fp)
+#    print('FN:',fn)
+#
+#    print("SVM sigmoid")
+#    clf = svm.SVC(kernel='sigmoid')
+#    clf.probability = True
+#    clf.fit(features.T, true_labels)
+#    ymodel = clf.predict(test_features.T)
+#    prob = clf.predict_proba(test_features.T)
+#    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#    plt.figure()
+#    plot_roc(fper, tper)
+#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print('TP:',tp)
+#    print('TN:',tn)
+#    print('FP:',fp)
+#    print('FN:',fn)
 
     k = 3
     print("KNN: k =",k)
+    print('2 norm')
     knn_model = KNN(k)
     knn_model.fit(features, true_labels)
-    ymodel = knn_model.predict(test_features)
+    ymodel = knn_model.predict(test_features, norm=2)
+    prob = knn_model.predict_prob(test_features)
+    print(prob)
+    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+    plt.figure()
+    plot_roc(fper, tper)
     tp,tn,fn,fp = perf_eval(ymodel, test_labels)
     print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+    print('TP:',tp)
+    print('TN:',tn)
+    print('FP:',fp)
+    print('FN:',fn)
 
-    knn_model2 = KNN(k)
-    knn_model2.fit(nort_features, nort_train_labels)
-    ymodel = knn_model2.predict(test_features2)
-    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
-    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    knn_model2 = KNN(k)
+#    knn_model2.fit(nort_features, nort_train_labels)
+#    ymodel = knn_model2.predict(test_features2, norm=2)
+#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print('TP:',tp)
+#    print('TN:',tn)
+#    print('FP:',fp)
+#    print('FN:',fn)
+#
+#    print('inf norm')
+#    knn_model = KNN(k)
+#    knn_model.fit(features, true_labels)
+#    ymodel = knn_model.predict(test_features, norm='inf')
+#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print('TP:',tp)
+#    print('TN:',tn)
+#    print('FP:',fp)
+#    print('FN:',fn)
+#
+#    knn_model2 = KNN(k)
+#    knn_model2.fit(nort_features, nort_train_labels)
+#    ymodel = knn_model2.predict(test_features2, norm='inf')
+#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print('TP:',tp)
+#    print('TN:',tn)
+#    print('FP:',fp)
+#    print('FN:',fn)
+#
+#    print('1 norm')
+#    knn_model = KNN(k)
+#    knn_model.fit(features, true_labels)
+#    ymodel = knn_model.predict(test_features, norm=1)
+#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print('TP:',tp)
+#    print('TN:',tn)
+#    print('FP:',fp)
+#    print('FN:',fn)
+#
+#    knn_model2 = KNN(k)
+#    knn_model2.fit(nort_features, nort_train_labels)
+#    ymodel = knn_model2.predict(test_features2, norm=1)
+#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print('TP:',tp)
+#    print('TN:',tn)
+#    print('FP:',fp)
+#    print('FN:',fn)
 
-    print("MPP case 1")
-    mpp = MPP(1)
-#    mpp.set_prior(5/6, 1/6)
-    mpp.fit(features, true_labels)
-    ymodel = mpp.predict(test_features)
-    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
-    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print("MPP case 1")
+#    mpp = MPP(1)
+#    mpp.set_prior(num_train_other/num_train_tweets, num_train_person/num_train_tweets)
+##    mpp.set_prior(5/6, 1/6)
+#    mpp.fit(features, true_labels)
+#    ymodel = mpp.predict(test_features)
+#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print('TP:',tp)
+#    print('TN:',tn)
+#    print('FP:',fp)
+#    print('FN:',fn)
+#
+#    print("MPP case 2")
+#    mpp = MPP(2)
+#    mpp.set_prior(num_train_other/num_train_tweets, num_train_person/num_train_tweets)
+##    mpp.set_prior(5/6, 1/6)
+#    mpp.fit(features, true_labels)
+#    ymodel = mpp.predict(test_features)
+#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print('TP:',tp)
+#    print('TN:',tn)
+#    print('FP:',fp)
+#    print('FN:',fn)
+#
+#    print("MPP case 3")
+#    mpp = MPP(3)
+#    mpp.set_prior(num_train_other/num_train_tweets, num_train_person/num_train_tweets)
+##    mpp.set_prior(5/6, 1/6)
+#    mpp.fit(features, true_labels)
+#    ymodel = mpp.predict(test_features)
+#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print('TP:',tp)
+#    print('TN:',tn)
+#    print('FP:',fp)
+#    print('FN:',fn)
 
-    print("MPP case 2")
-    mpp = MPP(2)
-#    mpp.set_prior(5/6, 1/6)
-    mpp.fit(features, true_labels)
-    ymodel = mpp.predict(test_features)
-    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
-    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print("BGNN")
+#    num_features = 7
+#    net = Network([7, 10, 10, 2])
+#    net.SGD(features, true_labels, 100, 1, 0.10, test_features, test_labels)
 
-    print("MPP case 3")
-    mpp = MPP(3)
-#    mpp.set_prior(5/6, 1/6)
-    mpp.fit(features, true_labels)
-    ymodel = mpp.predict(test_features)
-    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
-    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+    plt.show()
 
 if __name__ == "__main__":
     main()
