@@ -211,6 +211,75 @@ class MPP:
                     ytest[i] = 1
         return ytest
 
+    def predict_prob(self, xtest):
+        probs = np.zeros((xtest.shape[1],2), dtype=np.float64)
+        if self.case == 1:
+            for i in range(0, xtest.shape[1]):
+                diff0 = np.zeros((self.num_features,1))
+                diff0 = xtest[:,i].reshape((self.num_features,1)) - self.mu0
+                diff1 = np.zeros((self.num_features,1))
+                diff1 = xtest[:,i].reshape((self.num_features,1)) - self.mu1
+                x = np.zeros((self.num_features,1))
+                x = xtest[:,i].reshape((self.num_features,1))
+                sigma = self.sigma0[0,0]
+                inv_sigma = 1/(sigma**2)
+                ln_prior0 = math.log(self.prior_prob0)
+                ln_prior1 = math.log(self.prior_prob1)
+                prob0 = inv_sigma*self.mu0.T.dot(x) \
+                        - 0.5*inv_sigma*self.mu0.T.dot(self.mu0) \
+                        + ln_prior0
+                prob1 = inv_sigma*self.mu1.T.dot(x) \
+                        - 0.5*inv_sigma*self.mu1.T.dot(self.mu1) \
+                        + ln_prior1
+                probs[i,0] = math.exp(prob0)/(math.exp(prob0)+math.exp(prob1))
+                probs[i,1] = math.exp(prob1)/(math.exp(prob0)+math.exp(prob1))
+        elif self.case == 2:
+            for i in range(0, xtest.shape[1]):
+                x = xtest[:,i]
+                diff0 = np.zeros((self.num_features,1))
+                diff1 = np.zeros((self.num_features,1))
+                diff0 = xtest[:,i].reshape((self.num_features,1)) - self.mu0
+                diff1 = xtest[:,i].reshape((self.num_features,1)) - self.mu1
+                inv_sigma0 = np.linalg.inv(self.sigma0)
+                inv_sigma1 = np.linalg.inv(self.sigma1)
+                ln_prior0 = math.log(self.prior_prob0)
+                ln_prior1 = math.log(self.prior_prob1)
+                prob0 = -0.5*(diff0.T.dot(inv_sigma0).dot(diff0)) + ln_prior0
+                prob1 = -0.5*(diff1.T.dot(inv_sigma1).dot(diff1)) + ln_prior1
+                probs[i,0] = math.exp(prob0)/(math.exp(prob0)+math.exp(prob1))
+                probs[i,1] = math.exp(prob1)/(math.exp(prob0)+math.exp(prob1))
+        elif self.case == 3:
+            for i in range(0, xtest.shape[1]):
+                x = np.zeros((self.num_features,1))
+                x = xtest[:,i].reshape((self.num_features,1))
+                diff0 = np.zeros((self.num_features,1))
+                diff0 = xtest[:,i].reshape((self.num_features,1)) - self.mu0
+                diff1 = np.zeros((self.num_features,1))
+                diff1 = xtest[:,i].reshape((self.num_features,1)) - self.mu1
+                inv_sigma0 = np.linalg.inv(self.sigma0)
+                inv_sigma1 = np.linalg.inv(self.sigma1)
+                det_sigma0 = np.linalg.det(self.sigma0)
+                det_sigma1 = np.linalg.det(self.sigma1)
+                ln_prior0 = math.log(self.prior_prob0)
+                ln_prior1 = math.log(self.prior_prob1)
+                prob0 = -0.5*(diff0.T.dot(inv_sigma0).dot(diff0)) \
+                        -0.5*det_sigma0 + ln_prior0
+                prob1 = -0.5*(diff1.T.dot(inv_sigma1).dot(diff1)) \
+                        -0.5*det_sigma1 + ln_prior1
+                probs[i,0] = math.exp(prob0)/(math.exp(prob0)+math.exp(prob1))
+                probs[i,1] = math.exp(prob1)/(math.exp(prob0)+math.exp(prob1))
+        elif self.case == 4:
+            prob0 = self.bimodal_weight0a*gaussian(xtest, self.mu0a, self.sigma0a) + \
+                    self.bimodal_weight0b*gaussian(xtest, self.mu0b, self.sigma0b) + \
+                    self.prior_prob0
+            prob1 = self.bimodal_weight1a*gaussian(xtest, self.mu1a, self.sigma1a) + \
+                    self.bimodal_weight1b*gaussian(xtest, self.mu1b, self.sigma1b) + \
+                    self.prior_prob1
+            for i in range(0, xtest.shape[1]):
+                probs[i,0] = math.exp(prob0)/(math.exp(prob0)+math.exp(prob1))
+                probs[i,1] = math.exp(prob1)/(math.exp(prob0)+math.exp(prob1))
+        return probs
+
 class Model:
     def case1(self, t):
         # Setup the points matrix and averages in a numpy-friendly format
