@@ -8,10 +8,11 @@ from mpp import MPP
 from sklearn import svm
 from sklearn.metrics import roc_curve
 from bpnn import Network
+from kmeans import KMeans
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-mpl.use('Qt4Agg')
+#mpl.use('Qt4Agg')
 
 def filter_retweets(data):
     no_rt = []
@@ -326,23 +327,23 @@ def main():
 #    print('FP:',fp)
 #    print('FN:',fn)
 
-    k = 3
-    print("KNN: k =",k)
-    print('2 norm')
-    knn_model = KNN(k)
-    knn_model.fit(features, true_labels)
-    ymodel = knn_model.predict(test_features, norm=2)
-    prob = knn_model.predict_prob(test_features)
-    print(prob)
-    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
-    plt.figure()
-    plot_roc(fper, tper)
-    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
-    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
-    print('TP:',tp)
-    print('TN:',tn)
-    print('FP:',fp)
-    print('FN:',fn)
+#    k = 3
+#    print("KNN: k =",k)
+#    print('2 norm')
+#    knn_model = KNN(k)
+#    knn_model.fit(features, true_labels)
+#    ymodel = knn_model.predict(test_features, norm=2)
+#    prob = knn_model.predict_prob(test_features)
+#    print(prob)
+#    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#    plt.figure()
+#    plot_roc(fper, tper)
+#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print('TP:',tp)
+#    print('TN:',tn)
+#    print('FP:',fp)
+#    print('FN:',fn)
 
 #    knn_model2 = KNN(k)
 #    knn_model2.fit(nort_features, nort_train_labels)
@@ -440,7 +441,9 @@ def main():
 #    net = Network([7, 10, 10, 2])
 #    net.SGD(features, true_labels, 100, 1, 0.10, test_features, test_labels)
 
-    plt.show()
+    #plt.show()
+    kmeans = KMeans(2)
+    kmeans.predict(test_features, test_labels)
 
 if __name__ == "__main__":
     main()
