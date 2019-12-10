@@ -1,6 +1,7 @@
 import csv
 import numpy as np
 import timeit
+import random
 from random import randint
 from dim_reduction import *
 from knn import KNN
@@ -22,7 +23,7 @@ def filter_retweets(data):
     return no_rt
 
 def extract_features(data):
-    features = np.zeros((7,len(data)))
+    features = np.zeros((8,len(data)))
     for i in range(0,len(data)):
         tweet = data[i][3]
         upper = 0
@@ -35,8 +36,9 @@ def extract_features(data):
         features[3,i] = upper
         features[4,i] = tweet.lower().count('http')
         features[5,i] = tweet.count('#')
-        features[6,i] = len(tweet) 
-#        features[6,i] = tweet.lower().count('maga') + tweet.lower().count('make america great again') + tweet.lower().count('makeamericagreatagain') + tweet.lower().count('make #americagreatagain') + tweet.lower().count('make america') + tweet.lower().count('great again')
+        features[6,i] = tweet.lower().count('trump') 
+#        features[7,i] = tweet.lower().count('maga') + tweet.lower()
+        features[7,i] = tweet.lower().count('maga') + tweet.lower().count('make america great again') + tweet.lower().count('makeamericagreatagain') + tweet.lower().count('make #americagreatagain') + tweet.lower().count('make america') + tweet.lower().count('great again')
     return features
 
 def standardize(data, mean, sigma):
@@ -63,11 +65,80 @@ def perf_eval(predict, true):
                 fp += 1
     return (tp,tn,fn,fp)
 
+def create_dataset(tweets, person, num_train_tweets, train_percentages, num_test_tweets, test_percentages):
+    random.shuffle(tweets[0])
+    random.shuffle(tweets[1])
+    random.shuffle(tweets[2])
+    random.shuffle(tweets[3])
+    random.shuffle(tweets[4])
+    random.shuffle(tweets[5])
+
+    train_data = []
+    test_data = []
+
+    num_train_0 = int(train_percentages[0]*num_train_tweets)
+    num_train_1 = int(train_percentages[1]*num_train_tweets)
+    num_train_2 = int(train_percentages[2]*num_train_tweets)
+    num_train_3 = int(train_percentages[3]*num_train_tweets)
+    num_train_4 = int(train_percentages[4]*num_train_tweets)
+    num_train_5 = int(train_percentages[5]*num_train_tweets)
+
+    num_test_0 = int(test_percentages[0]*num_test_tweets)
+    num_test_1 = int(test_percentages[1]*num_test_tweets)
+    num_test_2 = int(test_percentages[2]*num_test_tweets)
+    num_test_3 = int(test_percentages[3]*num_test_tweets)
+    num_test_4 = int(test_percentages[4]*num_test_tweets)
+    num_test_5 = int(test_percentages[5]*num_test_tweets)
+
+    for i in range(0, num_train_0):
+        train_data.append(tweets[0][i])
+    for i in range(num_train_0, num_train_0+num_test_0):
+        test_data.append(tweets[0][i])
+
+    for i in range(0, num_train_1):
+        train_data.append(tweets[1][i])
+    for i in range(num_train_1, num_train_1+num_test_1):
+        test_data.append(tweets[1][i])
+
+    for i in range(0, num_train_2):
+        train_data.append(tweets[2][i])
+    for i in range(num_train_2, num_train_2+num_test_2):
+        test_data.append(tweets[2][i])
+
+    for i in range(0, num_train_3):
+        train_data.append(tweets[3][i])
+    for i in range(num_train_3, num_train_3+num_test_3):
+        test_data.append(tweets[3][i])
+
+    for i in range(0, num_train_4):
+        train_data.append(tweets[4][i])
+    for i in range(num_train_4, num_train_4+num_test_4):
+        test_data.append(tweets[4][i])
+
+    for i in range(0, num_train_5):
+        train_data.append(tweets[5][i])
+    for i in range(num_train_5, num_train_5+num_test_5):
+        test_data.append(tweets[5][i])
+    
+    train_labels = np.zeros(len(train_data))
+    start = int(np.sum(train_percentages[0:person])*num_train_tweets)
+    end = int(np.sum(train_percentages[0:person+1])*num_train_tweets)
+    for i in range(start, end):
+        train_labels[i] = 1
+    
+    test_labels = np.zeros(len(test_data))
+    start = int(np.sum(test_percentages[0:person])*num_test_tweets)
+    end = int(np.sum(test_percentages[0:person+1])*num_test_tweets)
+    for i in range(start, end):
+        test_labels[i] = 1
+
+    return [(train_data, train_labels), (test_data, test_labels)]
+
 def plot_roc(f_rate, t_rate):
     plt.plot(f_rate, t_rate, color='orange', label='ROC')
     plt.plot([0,1],[0,1], color='darkblue', linestyle='--')
     plt.xlabel('False Positive Rate')
-    plt.xlabel('True Positive Rate')
+    plt.ylabel('True Positive Rate')
     plt.title('ROC Curve')
     plt.legend()
 
@@ -109,12 +180,9 @@ def main():
     ndgt_tweets.pop(0)
     rd_tweets.pop(0)
     sk_tweets.pop(0)
-    print(len(dt_tweets))
-    print(len(hc_tweets))
-    print(len(kk_tweets))
-    print(len(ndgt_tweets))
-    print(len(rd_tweets))
-    print(len(sk_tweets))
+
+    print(len(dt_tweets) + len(hc_tweets) + len(kk_tweets) + len(ndgt_tweets) + len(rd_tweets) + len(sk_tweets))
+    tweets = [dt_tweets, hc_tweets, kk_tweets, ndgt_tweets, rd_tweets, sk_tweets]
 
     dt_nort_tweets   = filter_retweets(dt_tweets)
     hc_nort_tweets   = filter_retweets(hc_tweets)
@@ -123,105 +191,31 @@ def main():
     rd_nort_tweets   = filter_retweets(rd_tweets)
     sk_nort_tweets   = filter_retweets(sk_tweets)
 
-    num_train_tweets = 12000
-    num_train_person = 2000
-    num_train_other = int((num_train_tweets - num_train_person)/5)
+    print(len(dt_nort_tweets) + len(hc_nort_tweets) + len(kk_nort_tweets) + len(ndgt_nort_tweets) + len(rd_nort_tweets) + len(sk_nort_tweets))
+    nort_tweets = [dt_nort_tweets, hc_nort_tweets, kk_nort_tweets, ndgt_nort_tweets, rd_nort_tweets, sk_nort_tweets]
 
-    num_test_tweets = 1200
-    num_test_person = 200
-    num_test_other = int((num_test_tweets - num_test_person)/5)
+    percentages = [0.8, 0.04, 0.04, 0.04, 0.04, 0.04]
+    datasets = create_dataset(tweets, 0, 12000, percentages, 1200, percentages)
+    nort_datasets = create_dataset(nort_tweets, 0, 12000, percentages, 1200, percentages)
+    train_set = datasets[0][0]
+    train_labels = datasets[0][1]
+    test_set = datasets[1][0]
+    test_labels = datasets[1][1]
 
-    data = []
-    for i in range(0,num_train_person):
-        data.append(dt_tweets[randint(0,len(dt_tweets)-1)])
+    nort_train_set = datasets[0][0]
+    nort_train_labels = datasets[0][1]
+    nort_test_set = datasets[1][0]
+    nort_test_labels = datasets[1][1]
 
-    for i in range(0,num_train_other):
-        data.append(hc_tweets[randint(0,len(hc_tweets)-1)])
+    data = train_set
+    true_labels = train_labels
+    test_data = test_set
+    test_labels = test_labels
 
-    for i in range(0,num_train_other):
-        data.append(kk_tweets[randint(0,len(kk_tweets)-1)])
-
-    for i in range(0,num_train_other):
-        data.append(ndgt_tweets[randint(0,len(ndgt_tweets)-1)])
-
-    for i in range(0,num_train_other):
-        data.append(rd_tweets[randint(0,len(rd_tweets)-1)])
-
-    for i in range(0,num_train_other):
-        data.append(sk_tweets[randint(0,len(sk_tweets)-1)])
-    
-    true_labels = np.zeros(len(data))
-    for i in range(0, num_train_person):
-        true_labels[i] = 1
-
-    nort_data = []
-    for i in range(0,num_train_person):
-        nort_data.append(dt_nort_tweets[randint(0,len(dt_nort_tweets)-1)])
-
-    for i in range(0,num_train_other):
-        nort_data.append(hc_nort_tweets[randint(0,len(hc_nort_tweets)-1)])
-
-    for i in range(0,num_train_other):
-        nort_data.append(kk_nort_tweets[randint(0,len(kk_nort_tweets)-1)])
-
-    for i in range(0,num_train_other):
-        nort_data.append(ndgt_nort_tweets[randint(0,len(ndgt_nort_tweets)-1)])
-
-    for i in range(0,num_train_other):
-        nort_data.append(rd_nort_tweets[randint(0,len(rd_nort_tweets)-1)])
-
-    for i in range(0,num_train_other):
-        nort_data.append(sk_nort_tweets[randint(0,len(sk_nort_tweets)-1)])
-    
-    nort_train_labels = np.zeros(len(nort_data))
-    for i in range(0, num_train_person):
-        nort_train_labels[i] = 1
-
-    test_data = []
-    for i in range(0,num_test_person):
-        test_data.append(dt_tweets[randint(0,len(dt_tweets)-1)])
-
-    for i in range(0,num_test_other):
-        test_data.append(hc_tweets[randint(0,len(hc_tweets)-1)])
-
-    for i in range(0,num_test_other):
-        test_data.append(kk_tweets[randint(0,len(kk_tweets)-1)])
-
-    for i in range(0,num_test_other):
-        test_data.append(ndgt_tweets[randint(0,len(ndgt_tweets)-1)])
-
-    for i in range(0,num_test_other):
-        test_data.append(rd_tweets[randint(0,len(rd_tweets)-1)])
-
-    for i in range(0,num_test_other):
-        test_data.append(sk_tweets[randint(0,len(sk_tweets)-1)])
-    
-    test_labels = np.zeros(len(test_data))
-    for i in range(0, num_test_person):
-        test_labels[i] = 1
-
-    nort_test_data = []
-    for i in range(0,num_test_person):
-        nort_test_data.append(dt_nort_tweets[randint(0,len(dt_nort_tweets)-1)])
-
-    for i in range(0,num_test_other):
-        nort_test_data.append(hc_nort_tweets[randint(0,len(hc_nort_tweets)-1)])
-
-    for i in range(0,num_test_other):
-        nort_test_data.append(kk_nort_tweets[randint(0,len(kk_nort_tweets)-1)])
-
-    for i in range(0,num_test_other):
-        nort_test_data.append(ndgt_nort_tweets[randint(0,len(ndgt_nort_tweets)-1)])
-
-    for i in range(0,num_test_other):
-        nort_test_data.append(rd_nort_tweets[randint(0,len(rd_nort_tweets)-1)])
-
-    for i in range(0,num_test_other):
-        nort_test_data.append(sk_nort_tweets[randint(0,len(sk_nort_tweets)-1)])
-    
-    nort_test_labels = np.zeros(len(nort_test_data))
-    for i in range(0, num_test_person):
-        nort_test_labels[i] = 1
+    nort_data = nort_train_set
+    nort_true_labels = nort_train_labels
+    nort_test_data = nort_test_set
+    nort_test_labels = nort_test_labels
     
     features = extract_features(data)
     nort_features = extract_features(nort_data)
@@ -326,38 +320,48 @@ def main():
 #    print('FP:',fp)
 #    print('FN:',fn)
 
-    k = 3
-    print("KNN: k =",k)
-    print('2 norm')
-    knn_model = KNN(k)
-    knn_model.fit(features, true_labels)
-    ymodel = knn_model.predict(test_features, norm=2)
-    prob = knn_model.predict_prob(test_features)
-    print(prob)
-    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
-    plt.figure()
-    plot_roc(fper, tper)
-    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
-    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
-    print('TP:',tp)
-    print('TN:',tn)
-    print('FP:',fp)
-    print('FN:',fn)
-
-#    knn_model2 = KNN(k)
-#    knn_model2.fit(nort_features, nort_train_labels)
-#    ymodel = knn_model2.predict(test_features2, norm=2)
+#    k = 3
+#    print("KNN: k =",k)
+#    print('2 norm')
+#    knn_model = KNN(k)
+#    knn_model.fit(features, true_labels)
+#    ymodel = knn_model.predict(test_features, norm=2)
+#    prob = knn_model.predict_prob(test_features)
+#    print(prob)
+#    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#    plt.figure()
+#    plot_roc(fper, tper)
 #    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
 #    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
 #    print('TP:',tp)
 #    print('TN:',tn)
 #    print('FP:',fp)
 #    print('FN:',fn)
-#
+
+#    knn_model2 = KNN(k)
+#    knn_model2.fit(nort_features, nort_train_labels)
+#    ymodel = knn_model2.predict(test_features2, norm=2)
+#    prob = knn_model2.predict_prob(test_features)
+#    print(prob)
+#    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#    plt.figure()
+#    plot_roc(fper, tper)
+#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print('TP:',tp)
+#    print('TN:',tn)
+#    print('FP:',fp)
+#    print('FN:',fn)
+
 #    print('inf norm')
 #    knn_model = KNN(k)
 #    knn_model.fit(features, true_labels)
 #    ymodel = knn_model.predict(test_features, norm='inf')
+#    prob = knn_model.predict_prob(test_features)
+#    print(prob)
+#    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#    plt.figure()
+#    plot_roc(fper, tper)
 #    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
 #    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
 #    print('TP:',tp)
@@ -368,6 +372,11 @@ def main():
 #    knn_model2 = KNN(k)
 #    knn_model2.fit(nort_features, nort_train_labels)
 #    ymodel = knn_model2.predict(test_features2, norm='inf')
+#    prob = knn_model2.predict_prob(test_features)
+#    print(prob)
+#    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#    plt.figure()
+#    plot_roc(fper, tper)
 #    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
 #    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
 #    print('TP:',tp)
@@ -379,6 +388,11 @@ def main():
 #    knn_model = KNN(k)
 #    knn_model.fit(features, true_labels)
 #    ymodel = knn_model.predict(test_features, norm=1)
+#    prob = knn_model.predict_prob(test_features)
+#    print(prob)
+#    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#    plt.figure()
+#    plot_roc(fper, tper)
 #    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
 #    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
 #    print('TP:',tp)
@@ -389,6 +403,11 @@ def main():
 #    knn_model2 = KNN(k)
 #    knn_model2.fit(nort_features, nort_train_labels)
 #    ymodel = knn_model2.predict(test_features2, norm=1)
+#    prob = knn_model.predict_prob(test_features)
+#    print(prob)
+#    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#    plt.figure()
+#    plot_roc(fper, tper)
 #    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
 #    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
 #    print('TP:',tp)
@@ -398,10 +417,15 @@ def main():
 
 #    print("MPP case 1")
 #    mpp = MPP(1)
-#    mpp.set_prior(num_train_other/num_train_tweets, num_train_person/num_train_tweets)
-##    mpp.set_prior(5/6, 1/6)
+##    mpp.set_prior(num_train_other/num_train_tweets, num_train_person/num_train_tweets)
+#    mpp.set_prior(0.2, 0.8)
 #    mpp.fit(features, true_labels)
 #    ymodel = mpp.predict(test_features)
+#    prob = mpp.predict_prob(test_features)
+#    print(prob)
+#    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#    plt.figure()
+#    plot_roc(fper, tper)
 #    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
 #    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
 #    print('TP:',tp)
@@ -411,10 +435,14 @@ def main():
 #
 #    print("MPP case 2")
 #    mpp = MPP(2)
-#    mpp.set_prior(num_train_other/num_train_tweets, num_train_person/num_train_tweets)
-##    mpp.set_prior(5/6, 1/6)
+##    mpp.set_prior(num_train_other/num_train_tweets, num_train_person/num_train_tweets)
+#    mpp.set_prior(0.2, 0.8)
 #    mpp.fit(features, true_labels)
 #    ymodel = mpp.predict(test_features)
+#    prob = mpp.predict_prob(test_features)
+#    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#    plt.figure()
+#    plot_roc(fper, tper)
 #    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
 #    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
 #    print('TP:',tp)
@@ -424,10 +452,14 @@ def main():
 #
 #    print("MPP case 3")
 #    mpp = MPP(3)
-#    mpp.set_prior(num_train_other/num_train_tweets, num_train_person/num_train_tweets)
-##    mpp.set_prior(5/6, 1/6)
+##    mpp.set_prior(num_train_other/num_train_tweets, num_train_person/num_train_tweets)
+#    mpp.set_prior(0.2, 0.8)
 #    mpp.fit(features, true_labels)
 #    ymodel = mpp.predict(test_features)
+#    prob = mpp.predict_prob(test_features)
+#    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#    plt.figure()
+#    plot_roc(fper, tper)
 #    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
 #    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
 #    print('TP:',tp)
@@ -435,10 +467,14 @@ def main():
 #    print('FP:',fp)
 #    print('FN:',fn)
 
-#    print("BGNN")
-#    num_features = 7
-#    net = Network([7, 10, 10, 2])
-#    net.SGD(features, true_labels, 100, 1, 0.10, test_features, test_labels)
+    print("BGNN")
+    num_features = 7
+    net = Network([features.shape[0], 10, 2])
+    net.SGD(features, true_labels, 1000, 1, 0.05, test_features, test_labels)
+    prob = net.SGD_prob(features, true_labels, 100, 1, 0.10, test_features, test_labels)
+    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+    plt.figure()
+    plot_roc(fper, tper)
 
     plt.show()
 

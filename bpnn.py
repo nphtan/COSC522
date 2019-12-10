@@ -45,19 +45,11 @@ class Network(object):
             label = np.zeros((2,1))
             label[int(training_labels[i])] = 1
             tr_data.append((training_data[:,i].reshape((training_data.shape[0],1)), label))
-#            tr_data.append((training_data[:,i], label))
         training_data = tr_data
-#        print(type(training_data[0][0]))
-#        print(type(training_data[0][1]))
-#        print(type(training_data))
-#        print(training_data[0][0].shape)
-#        print(training_data[0][1].shape)
         ts_data = []
         for i in range(0,test_data.shape[1]):
             ts_data.append((test_data[:,i], test_labels[i]))
         test_data = ts_data
-       # print(test_data)
-#        print("Reformatted data")
 
         if test_data: 
             n_test = len(test_data)
@@ -69,9 +61,56 @@ class Network(object):
             for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch,eta)
             if test_data:
-                print("Epoch {0}: {1} / {2} = {3}".format(j,self.evaluate(test_data),n_test,self.evaluate(test_data)/n_test))
+                eva = self.evaluate(test_data)
+                print("Epoch {0}: {1} / {2} = {3}".format(j,eva,n_test,eva/n_test))
             else:
                 print("Epoch {0} complete".format(j))
+    	    
+    def SGD_prob(self, training_data, training_labels, epochs, mini_batch_size,eta,
+            test_data = None, test_labels=None):
+        """
+        Train the neural network using mini-batch stochastic gradient descent.
+        The "training_data" is a list of tuples "(x,y)" representing the training inputs
+        and the desired output. The other non-optional parameters are self-explanatory.
+        If "test_data" is provided then the network will be evaluated against the test 
+        data after each epoch, and partial progress printed out. This is useful for tracking
+        process, but slows things down substantially.
+        """
+
+        probs = np.zeros((test_data.shape[1],2), dtype=np.float64)
+
+        tr_data = []
+        for i in range(0,training_data.shape[1]):
+            label = np.zeros((2,1))
+            label[int(training_labels[i])] = 1
+            tr_data.append((training_data[:,i].reshape((training_data.shape[0],1)), label))
+        training_data = tr_data
+        ts_data = []
+        for i in range(0,test_data.shape[1]):
+            ts_data.append((test_data[:,i], test_labels[i]))
+        test_data = ts_data
+
+        num_iter = 20
+        if test_data: 
+            for i in range(0,num_iter):
+                n_test = len(test_data)
+                n = len(training_data)
+                for j in range(epochs):
+                    random.shuffle(training_data)        #rearrange the training_data randomly
+                    mini_batches = [ training_data[k:k + mini_batch_size]
+    	                                       for k in range(0, n, mini_batch_size)]
+                for mini_batch in mini_batches:
+                    self.update_mini_batch(mini_batch,eta)
+                if test_data:
+                    eva = self.evaluate_verbose(test_data)
+                    for j in range(0,n_test):
+                        if eva[j][0] == 0:
+                            probs[j,0] += 1
+                        else:
+                            probs[j,1] += 1
+            probs[:,0] = probs[:,0]/num_iter
+            probs[:,1] = probs[:,1]/num_iter
+        return probs
     	    
     def update_mini_batch(self,mini_batch,eta):
     	"""
@@ -156,6 +195,15 @@ class Network(object):
 #        print(np.argmax(self.feedforward(test_data[0][0])))
 #        print(test_results[0:10])
         return sum(int(x == y) for (x, y) in test_results)
+
+    def evaluate_verbose(self, test_data):
+        """Return the number of test inputs for which the neural
+        network outputs the correct result. Note that the neural
+        network's output is assumed to be the index of whichever
+        neuron in the final layer has the highest activation."""
+        test_results = [(np.argmax(self.feedforward(x)), y)
+                       for (x, y) in test_data]
+        return test_results
     
     def cost_derivative(self, output_activations, y):
     	"""Return the vector of partial derivatives \partial C_x /
