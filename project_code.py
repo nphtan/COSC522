@@ -8,6 +8,7 @@ from knn import KNN
 from mpp import MPP
 from sklearn import svm
 from sklearn.metrics import roc_curve
+from sklearn import tree
 from bpnn import Network
 from kmeans import KMeans
 from kohonen import KMap
@@ -26,7 +27,7 @@ def filter_retweets(data):
     return no_rt
 
 def extract_features(data):
-    features = np.zeros((8,len(data)))
+    features = np.zeros((9,len(data)))
     for i in range(0,len(data)):
         tweet = data[i][3]
         upper = 0
@@ -39,9 +40,12 @@ def extract_features(data):
         features[3,i] = upper
         features[4,i] = tweet.lower().count('http')
         features[5,i] = tweet.count('#')
-        features[6,i] = tweet.lower().count('trump') 
-#        features[7,i] = tweet.lower().count('maga') + tweet.lower()
-        features[7,i] = tweet.lower().count('maga') + tweet.lower().count('make america great again') + tweet.lower().count('makeamericagreatagain') + tweet.lower().count('make #americagreatagain') + tweet.lower().count('make america') + tweet.lower().count('great again')
+        features[6,i] = tweet.count('"')
+        features[7,i] = tweet.count(',')
+        features[8,i] = tweet.count('.')
+#        features[6,i] = tweet.lower().count('trump') + tweet.lower().count('donald') 
+#        features[7,i] = tweet.lower().count('maga') + tweet.lower().count('make america great again') + tweet.lower().count('makeamericagreatagain') + tweet.lower().count('make #americagreatagain') + tweet.lower().count('make america') + tweet.lower().count('great again')
+#        features[8,i] = tweet.lower().count('loser')
     return features
 
 def standardize(data, mean, sigma):
@@ -67,6 +71,58 @@ def perf_eval(predict, true):
             else:
                 fp += 1
     return (tp,tn,fn,fp)
+
+def confusion_matrix(predict, true):
+    tp,tn,fn,fp = perf_eval(predict, true)
+    conf_mat = np.array((2,2))
+    conf_mat[0,0] = tp
+    conf_mat[0,1] = fp
+    conf_mat[1,0] = fn
+    conf_mat[1,1] = tn
+    return conf_mat
+
+def m_fold_cross_validation(tweets, person, m):
+    print(len(tweets[0]))
+    print(len(tweets[1]))
+    print(len(tweets[2]))
+    print(len(tweets[3]))
+    print(len(tweets[4]))
+    print(len(tweets[5]))
+    all_tweets = []
+    all_tweets.extend(tweets[0])
+    all_tweets.extend(tweets[1])
+    all_tweets.extend(tweets[2])
+    all_tweets.extend(tweets[3])
+    all_tweets.extend(tweets[4])
+    all_tweets.extend(tweets[5])
+    y = [0]*len(all_tweets)
+    start = 0
+    end = 0
+    for i in range(0,person):
+        start += len(tweets[i])
+    end = start + len(tweets[person])
+    print(start)
+    print(end)
+    for i in range(start, end):
+        y[i] = 1.0
+    z = list(zip(all_tweets, y))
+    random.shuffle(z)
+    all_tweets, all_labels = zip(*z)
+    num_per_set = int(len(all_tweets)/m)
+    all_tweets = all_tweets[0:num_per_set*m]
+    all_labels = all_labels[0:num_per_set*m]
+    sets = []
+    for i in range(0,m):
+        start = i*num_per_set
+        end = (i+1)*num_per_set
+        train_tweets = all_tweets[0:start] + all_tweets[end:]
+        train_labels = all_labels[0:start] + all_labels[end:]
+        test_tweets = all_tweets[start:end]
+        test_labels = all_labels[start:end]
+        train = (train_tweets, train_labels)
+        test = (test_tweets, test_labels)
+        sets.append((train, test))
+    return sets
 
 def create_dataset(tweets, person, num_train_tweets, train_percentages, num_test_tweets, test_percentages):
     random.shuffle(tweets[0])
@@ -184,7 +240,13 @@ def main():
     rd_tweets.pop(0)
     sk_tweets.pop(0)
 
-    print(len(dt_tweets) + len(hc_tweets) + len(kk_tweets) + len(ndgt_tweets) + len(rd_tweets) + len(sk_tweets))
+#    print(len(dt_tweets))
+#    print(len(hc_tweets))
+#    print(len(kk_tweets))
+#    print(len(ndgt_tweets))
+#    print(len(rd_tweets))
+#    print(len(sk_tweets))
+#    print(len(dt_tweets) + len(hc_tweets) + len(kk_tweets) + len(ndgt_tweets) + len(rd_tweets) + len(sk_tweets))
     tweets = [dt_tweets, hc_tweets, kk_tweets, ndgt_tweets, rd_tweets, sk_tweets]
 
     dt_nort_tweets   = filter_retweets(dt_tweets)
@@ -194,12 +256,13 @@ def main():
     rd_nort_tweets   = filter_retweets(rd_tweets)
     sk_nort_tweets   = filter_retweets(sk_tweets)
 
-    print(len(dt_nort_tweets) + len(hc_nort_tweets) + len(kk_nort_tweets) + len(ndgt_nort_tweets) + len(rd_nort_tweets) + len(sk_nort_tweets))
+#    print(len(dt_nort_tweets) + len(hc_nort_tweets) + len(kk_nort_tweets) + len(ndgt_nort_tweets) + len(rd_nort_tweets) + len(sk_nort_tweets))
     nort_tweets = [dt_nort_tweets, hc_nort_tweets, kk_nort_tweets, ndgt_nort_tweets, rd_nort_tweets, sk_nort_tweets]
 
-    percentages = [0.8, 0.04, 0.04, 0.04, 0.04, 0.04]
-    datasets = create_dataset(tweets, 0, 12000, percentages, 1200, percentages)
-    nort_datasets = create_dataset(nort_tweets, 0, 12000, percentages, 1200, percentages)
+#    percentages = [0.43, 0.08, 0.26, 0.06, 0.14, 0.03]
+    percentages = [0.50, 0.10, 0.10, 0.10, 0.10, 0.10]
+    datasets = create_dataset(tweets, 0, 10000, percentages, 1000, percentages)
+    nort_datasets = create_dataset(nort_tweets, 0, 10000, percentages, 1000, percentages)
     train_set = datasets[0][0]
     train_labels = datasets[0][1]
     test_set = datasets[1][0]
@@ -256,16 +319,13 @@ def main():
 #    test_features2 = pca.reduce(test_features2)
 #    print(pca2.eigenvalues)
 
-#    print("SVM linear")
-#    clf = svm.SVC(kernel='linear')
+#    print("Decision Tree")
+#    clf = tree.DecisionTreeClassifier()
 #    clf.probability = True
 #    clf.fit(features.T, true_labels)
 #    ymodel = clf.predict(test_features.T)
 #    prob = clf.predict_proba(test_features.T)
-#    print(prob)
 #    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
-#    print(fper)
-#    print(tper)
 #    plt.figure()
 #    plot_roc(fper, tper)
 #    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
@@ -274,9 +334,25 @@ def main():
 #    print('TN:',tn)
 #    print('FP:',fp)
 #    print('FN:',fn)
-#
+
+#    print("SVM linear")
+#    clf = svm.SVC(kernel='linear', gamma='auto')
+#    clf.probability = True
+#    clf.fit(features.T, true_labels)
+#    ymodel = clf.predict(test_features.T)
+#    prob = clf.predict_proba(test_features.T)
+#    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#    plt.figure()
+#    plot_roc(fper, tper)
+#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print('TP:',tp)
+#    print('TN:',tn)
+#    print('FP:',fp)
+#    print('FN:',fn)
+
 #    print("SVM poly")
-#    clf = svm.SVC(kernel='poly')
+#    clf = svm.SVC(kernel='poly', gamma='auto')
 #    clf.probability = True
 #    clf.fit(features.T, true_labels)
 #    ymodel = clf.predict(test_features.T)
@@ -292,7 +368,7 @@ def main():
 #    print('FN:',fn)
 #
 #    print("SVM rbf")
-#    clf = svm.SVC(kernel='rbf')
+#    clf = svm.SVC(kernel='rbf', gamma='auto')
 #    clf.probability = True
 #    clf.fit(features.T, true_labels)
 #    ymodel = clf.predict(test_features.T)
@@ -308,7 +384,7 @@ def main():
 #    print('FN:',fn)
 #
 #    print("SVM sigmoid")
-#    clf = svm.SVC(kernel='sigmoid')
+#    clf = svm.SVC(kernel='sigmoid', gamma='auto')
 #    clf.probability = True
 #    clf.fit(features.T, true_labels)
 #    ymodel = clf.predict(test_features.T)
@@ -425,7 +501,6 @@ def main():
 #    mpp.fit(features, true_labels)
 #    ymodel = mpp.predict(test_features)
 #    prob = mpp.predict_prob(test_features)
-#    print(prob)
 #    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
 #    plt.figure()
 #    plot_roc(fper, tper)
@@ -483,12 +558,34 @@ def main():
     #kmeans = KMeans(2)
     #kmeans.predict(features, true_labels)
     #kmeans.predict(test_features, test_labels)
-
-
     #wta = WTA(2)
     #wta.predict(test_features, test_labels, e=0.0005)
     kmap = KMap(2)
     kmap.predict(test_features, test_labels, e=0.0000001, iters=1000)
+
+    m = 5
+    sets = m_fold_cross_validation(tweets, 0, m)
+    print(len(sets))
+    conf_mats = np.zeros((m,2,2))
+    for i in range(0,m):
+        train,test = sets[i]
+        train_tweets,train_labels = train
+        test_tweets,test_labels = test
+        train_features = extract_features(train_tweets)
+        test_features = extract_features(test_tweets)
+        mean = np.mean(train_features, axis=1).reshape((train_features.shape[0],1))
+        sigma = np.std(train_features, axis=1).reshape((train_features.shape[0],1))
+        standardize(train_features, mean, sigma)
+        standardize(test_features, mean, sigma)
+        print("BGNN")
+        net = Network([train_features.shape[0], 10, 2])
+        conf_mats[i,:,:] = net.SGD(train_features, train_labels, 1000, 1, 0.05, test_features, test_labels)
+        prob = net.SGD_prob(train_features, train_labels, 100, 1, 0.10, test_features, test_labels)
+        fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+        plt.figure()
+        plot_roc(fper, tper)
+    print(conf_mats)
+
 
 if __name__ == "__main__":
     main()
