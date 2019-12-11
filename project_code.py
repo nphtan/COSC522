@@ -10,6 +10,8 @@ from sklearn import svm
 from sklearn.metrics import roc_curve
 from bpnn import Network
 from kmeans import KMeans
+from kohonen import KMap
+from wta import WTA
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
@@ -468,18 +470,25 @@ def main():
 #    print('FP:',fp)
 #    print('FN:',fn)
 
-    print("BGNN")
-    num_features = 7
-    net = Network([features.shape[0], 10, 2])
-    net.SGD(features, true_labels, 1000, 1, 0.05, test_features, test_labels)
-    prob = net.SGD_prob(features, true_labels, 100, 1, 0.10, test_features, test_labels)
-    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
-    plt.figure()
-    plot_roc(fper, tper)
+#    print("BGNN")
+#    num_features = 7
+#    net = Network([features.shape[0], 10, 2])
+#    net.SGD(features, true_labels, 1000, 1, 0.05, test_features, test_labels)
+#    prob = net.SGD_prob(features, true_labels, 100, 1, 0.10, test_features, test_labels)
+#    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#    plt.figure()
+#    plot_roc(fper, tper)
 
     #plt.show()
-    kmeans = KMeans(2)
-    kmeans.predict(test_features, test_labels)
+    #kmeans = KMeans(2)
+    #kmeans.predict(features, true_labels)
+    #kmeans.predict(test_features, test_labels)
+
+
+    #wta = WTA(2)
+    #wta.predict(test_features, test_labels, e=0.0005)
+    kmap = KMap(2)
+    kmap.predict(test_features, test_labels, e=0.0000001, iters=1000)
 
 if __name__ == "__main__":
     main()

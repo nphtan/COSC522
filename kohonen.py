@@ -11,7 +11,7 @@ def eucdist(a, b):
         d += ((a[i] - b[i]) ** 2)
     return math.sqrt(d)
 
-class KMeans:
+class KMap:
     k = 0
     xdata = 0
     ydata = 0
@@ -27,7 +27,7 @@ class KMeans:
             x = data[:,i].reshape(self.mean.shape)
             data[:,i] = ((x - self.mean) / self.sigma).reshape(x.shape[0])
 
-    def predict(self, xs, test_labels, seed = 2):
+    def predict(self, xs, test_labels, n=2, e=0.01, iters=10, seed = 2):
         random.seed(seed)
         xs = xs.T
         clusters = []
@@ -37,41 +37,39 @@ class KMeans:
                 cluster.append(random.random())
             clusters.append([cluster, [], []])
 
-        iters = 0
         old_us = [[0 for x in range(xs.shape[1])] for y in range(self.k)]
         for old_u in old_us:
             print(old_u)
 
-        while True:
-            old_us = [x[0] for x in clusters]
-            for cluster in clusters:
-                cluster[1] = []
-                cluster[2] = []
-            print('Iter {}'.format(iters + 1))
-
-            for h in range(len(xs)):
+        for i in range(iters):
+            std = np.std([x[0] for x in clusters], axis=0)
+            for j in range(len(xs)):
                 mindex = 0
                 mindist = float('inf')
-                #print(pt)
-                for i in range(len(clusters)):
-                    d = eucdist(xs[h], clusters[i][0])
+                for k in range(len(clusters)):
+                    d = eucdist(xs[j], clusters[k][0])
                     if d < mindist:
-                        mindex = i
+                        mindex = k
                         mindist = d
-                clusters[mindex][1].append(list(xs[h]))
-                clusters[mindex][2].append(test_labels[h])
 
-            for cluster in clusters:
-                #print(cluster[1])
-                pts = [x for x in cluster[1]]
-                if len(pts) == 0:
-                    continue
-                ave = np.mean(np.array(pts), axis=0)
-                cluster[0] = list(ave)
-            iters += 1
-            new_us = [x[0] for x in clusters]
-            if old_us == new_us:
-                break
+                for k in range(len(clusters)):
+                    emax = 10.0 * e
+                    ek = emax * (1.0 * e / emax) ** ((i + 1) / float(iters))
+                    dist = eucdist(clusters[mindex][0], clusters[k][0])
+                    phik = np.exp(-1.0 * (dist ** 2) / ((2 * std) ** 2))
+                    clusters[k][0] += ek * phik *                             \
+                            np.subtract(xs[j], clusters[k][0])
+
+        for i in range(len(xs)):
+            mindex = 0
+            mindist = float('inf')
+            for j in range(len(clusters)):
+                d = eucdist(xs[i], clusters[j][0])
+                if d < mindist:
+                    mindex = j
+                    mindist = d
+            clusters[mindex][1].append(xs[i])
+            clusters[mindex][2].append(test_labels[i])
         
         num0s = float(len([x for x in test_labels if x == 0]))
         num1s = float(len([x for x in test_labels if x == 1]))
