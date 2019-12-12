@@ -8,353 +8,55 @@
 \begin{document}
 
 \title{Unsupervised Learning for Image Compression\\ \small{COSC522 (Machine Learning) Project 4}}
-\author{Joseph Teague\\ \small{jteague6@vols.utk.edu}}
+\author{Joseph Teague and Nigel Tan\\ \small{jteague6@vols.utk.edu and ntan1@vols.utk.edu}}
 \maketitle
 
 \begin{abstract}
 
-    In this assignment, we examine different unsupervised learning techniques (namely k-means, winner-take-all, and Kohonen maps). We employ these techniques to compress a true-color image to a smaller number of colors. We demonstrate the ability of these techniques to satisfactorily reduce the number of colors and quantify the performance of the learning techniques in terms of both computation time and the similarity of the compressed image to the original. Using this information, we compare and contrast the learning techniques and discuss the tradeoffs of each.
+    The ability to identify the author of a written work online is important for a number of reasons. While posts are typically tied to a username, individuals can have more than one account on many services and some individuals or organizations have a social media team to handle online posting for them. Author identification can, among other things, assist with tracking down users who are attempting to evadea ban or the author of a post that violates the policies of a celebrity or organization. In this work, we present an attempt to utilize machine learning to identify the individual author of a post. Using a number of machine learning techniques, we show results that have good sensitivity but poor specificity and how, by combining these approaches, we can arrive at a reasonable model 
 
 \end{abstract}
 
+\section{Introduction}
+
+There is lots of publicly available work for sentiment analysis with
+
 \section{Approach}
 
-\subsection{Background - The PPM Format}
-This assignment depends on a PPM image file. PPM is a simple format, consisting of three lines of descriptors followed by image data\cite{PPMinfo}. The first line of the descriptor contains an image type specification. In this case, the specification is \texttt{P6}, meaning the image contains 24 bits per pixel and the data is encoded in binary (one byte per color per pixel). The second line contains the dimensions of the image. The third line defines a maximum value for each color. The image data can be stored as ASCII, but in this case the image data is stored as binary, meaning there are three bytes per pixel.
+\subsection{The Dataset}
 
-Of note is the fact that a PPM image file cannot truly be compressed. Because each pixel always takes three bytes, the size will always be the same no matter how many individual colors there are. Therefore, to test compression, we will convert to PNG and examine the sizes of THOSE.
-
-\subsection{Implementation}
-The software for this project is written in Python 3. It depends on the \textit{numpy}, \textit{math}, \textit{random}, and \textit{argparse} packages. The main Python file opens a PPM image file and performs one of the three unsupervised learning techniques on it to reduce its color space. If k-means is used, it accepts the number of clusters as its only parameter. If winner-takes-all is used, it accepts a learning rate and the number of clusters as its parameters. If Kohonen mapping is used, it accepts a learning rate, a number of iterations, and the number of clusters as its parameters. In each case, the number of clusters is the maximum number of colors that may be present in the compressed image. 
-
-In the procedures below, each cluster center is a triple of floating point values where element 0 is analogous to a red pixel, element 1 is analogous to a green value, and element 3 is analogous to a blue value. In other words, each cluster can represent a color in the PPM format used. Because the clustering algorithms require floating point values to function accurately, these values must be rounded to the nearest integer before the resulting image is written in the PPM format. Each pixel/point mentioned below takes the form of a pixel in the PPM format below; in other words, a triple consisting of three bytes \((red, green, blue)\)
-
-The procedure for k-means compression is as follows\cite{Class}:
-\begin{enumerate}
-    \item Generate a number of random clusters as specified by the user.
-    \item Assign each point (pixel) to the nearest cluster. Euclidean distance is used as a distamce metric.
-    \item Modify the cluster so that is equal to the mean of all points assigned to it.
-    \item Repeat until the assignment of points to clusters does not change between iterations.
-    \item Replace the color value of each pixel with the value of its nearest cluster mean.
-\end{enumerate}
-
-The procedure for winner-take-all is as follows\cite{Class}:
-\begin{enumerate}
-    \item Generate a number of random clusters as specified by the user.
-    \item For each pixel:
-        \begin{enumerate}
-            \item Find the closest cluster \(k\).
-            \item Add \(\epsilon * (x - k)\) to the cluster center, where \(\epsilon\) is the user-specified learning rate and \(x\) is the point.
-        \end{enumerate}
-    \item Replace the color value of each pixel with the value of the nearest cluster center.
-\end{enumerate}
-
-The procedure for Kohonen maps is more complicated and is as follows\cite{Class}:
-\begin{enumerate}
-    \item Generate a number of random clusters as specified by the user.
-    \item For each iteration \(i\) specified by the user:
-        \begin{enumerate}
-            \item For each pixel in the image:
-                \begin{enumerate}
-                    \item Calculate the standard deviation of the cluster centers \(\sigma\).
-                    \item Locate the NEAREST cluster \(k\).
-                    \item For each cluster \(k_i\):
-                        \begin{enumerate}
-                            \item Set \(e_{max}\) to \(10 * e\), where \(e\) is the learning rate specified by the user.
-                            \item Calculate \(e(k_i) = e_{max} * \frac{e}{e_{max}}^\frac{i}{i_{max}}\)
-                            \item Calculate \(\phi(k_i) = e^{-\frac{dist(k_i, k)^2}{2\sigma^2}}\).
-                            \item Set \(k_i = k_i + e(k_i) * \phi(k_i) * (x - k_i)\).
-                        \end{enumerate}
-                \end{enumerate}
-        \end{enumerate}
-    \item Replace the color value of each pixel with the value of the nearest cluster center.
-\end{enumerate}
-
-Once one of these three steps has been completed, the resulting compressed-color-space PPM file is written to disk. Comparison of compressed files with the original is performed using mean-squared-error\cite{MSE}. The algorithm for MSE is as follows: \(\frac{\Sigma_{i=1}^{num\_pixels}(compressed\_file_i - original\_file_i)^2}{num\_pixels}\). This produces a numeric value (not a percentage), where lower values mean a more-similar image with 0.0 meaning two identical images. 
-
-\section{Experiments}
-All experiments for this assignment were run on a 2015 MacBook Pro with an Intel i7 CPU. The experiments are fairly simple and involve generating images with the number of colors reduced to some power of 2, from 4 (\(2^2)\) to 256 (\(2^8)\) using each of the three techniques described above. For winner-takes-all, various learning rates were also tested (from .01 to 1.0), and for Kohonen maps various learning rates (from 0.01 to 1.0) were tested along with increasing numbers of iterations (from 5 to 20). There were three parameters that were of particular interest to us:
+We obtained archives containing a number of Tweets from prolific celebrity Twitter users from Kaggle \cite{TweetSource}. While this archive contains a large number of users, we selected six who we thought would provide a diversity of writing style for the purposes of this examination. Those six are Donald Trump, Hillary Clinton, Richard Dawkins, Neil DeGrasse Tyson, Astronaut Scott Kelly, and Kim Kardashian. The Tweets provided are purely text and have no features extracted, so the dity of identifying features fell to us. The features we selected are:
 
 \begin{itemize}
-    \item \textbf{Computation Time}: how long the compressed image took to generate, with a time-per-iteration used where appropriate.
-    \item \textbf{Image Correctness}: how similar the compressed image is to the original image.
-    \item \textbf{Compression Effectiveness}: the size of the resulting image, when converted to a PNG and to a JPEG, when compared to the original image converted to PNG and JPEG. JPEGs have various available compression levels; for all cases, I'm using the "best" image quality provided by MacOS's Preview program.
+    \item Repeated punctuation (e.g., ``!!!!!'')
+    \item Inclusion of images
+    \item @s directed at other users or organizations
+    \item Typing in all caps (e.g., ``NO COLLUSION'')
+    \item Inclusion of links
+    \item Use of hashtags (e.g. ``\#mancrushmonday'')
+    \item Quotes
 \end{itemize}
 
+We also, as a comparison, run some tests with highly user-specific features extracted. These typically consist of things that one person is more likely to say than the others. For example, Donald Trump is more likely to say ``make America great again,'' while Scott Kelly is the only selected user who would discuss his time in space. These features target specific words and phrases and do not include any sort of natural language processing. The bulk of our tests do not include these highly-specific features, and the end goal is to develop a user-agnostic approach to author identification.
+
+\subsection{Techniques Used}
+
+Every technique used in class so far has been employed in this work. We use MPP cases 1, 2, and 3, k-Nearest-Neighbors, support vector machines (linear, poly, and sigmoid), and backpropagating neural networks were used for supervised learning methods. For unsupervised methods, k-Means, winner-take-all, and Kohonen maps were employed. We also employed decision trees, which were not used in class.
+
+Each learning method was run multiple times (with a parameter sweep where appropriate) with m-fold cross validation to examin its effectiveness. In addition to total accuracy, we paid close attention to sensitivity and specificity. Computing performance was not measured - in this case, we are more interested in overall accuracy than anything else.
+
+\section{Experiments}
+
+All experiments used for this work were written in Python 3. 
+
 \section{Results}
-\subsection{k-Means}
-
-Figure \ref{fig:km-256} shows the compressed image and the color image side-by-side. At first glance, the images are almost indistinguishable. However, looking closely revleals ``blocky'' artifacts caused by the compression in areas of smooth color gradients (the center of the purple flowers) and areas of shadow (the left part of the yellow flower).
-
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{kmeans_256_png}
-        \caption{256-color image}
-    \end{subfigure}
-    %
-    \begin{subfigure}[b]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{flowersm_png}
-        \caption{Original full-color image}
-    \end{subfigure}
-    \caption{Comparison of a 256-color compressed image and the full-color image.}
-    \label{fig:km-256}
-\end{figure}
-
-Table \ref{tab:km-comp} shows the computation time performance of the k-means algorithm. While the number of iterations required to converge do not necesarilly decrease monotonically as the number of colors decreases, the amount of time per iteration clearly does. Since one calculation must be performed per-pixel per-cluster each iteration, this makes sense.
-
-\begin{table}[H]
-    \centering
-    \begin{tabular}{||c|c|c|c||}
-        \hline
-        \hline
-        \textbf{Colors} &   \textbf{Iterations}     &   \textbf{Time (Seconds)} &   \textbf{Time/Iteration} \\
-        \hline
-        256             &   33                      &   164.67                  &   4.99                    \\
-        \hline
-        128             &   47                      &   143.01                  &   3.04                    \\
-        \hline
-        64              &   65                      &   112.39                  &   1.73                    \\
-        \hline
-        32              &   22                      &   19.13                   &   0.87                    \\
-        \hline
-        16              &   7                       &   3.09                    &   0.44                    \\
-        \hline
-        8               &   12                      &   2.78                    &   0.23                    \\
-        \hline
-        4               &   11                      &   1.36                    &   0.12                    \\
-        \hline
-        \hline
-    \end{tabular}
-    \caption{Computation time performance table for k-means}
-    \label{tab:km-comp}
-\end{table}
-
-Table \ref{tab:km-sim} shows the similarities between the compressed image and the full-color image. A lower score in the \textbf{Similarity} column means the image is \textit{more similar} to the original, full-color image. We noticed, when saving the image, that the full requested color space is not always used. This could be attributed to the random initial selection of cluster centers - some are bound to be  ``left out'' when performing the algorithm. Because of this, we also include how many colors were present in the final image. We noticed that, as the total number of colors decreased, a greater percentage of the requested color space was used. We also noticed that, as the number of colors decreased, the similarity of the compressed image to the full-color image decreased. With 256 requester colors, the compressed image is almost indistinguishable from the original. As the number of colors decreases, the images first begin to appear grainy, then lose definition in the shadows. By the time four colors is used, the image is still identifiable, but its definition is (obviously) very poor compared to the originals.
-
-\begin{table}[H]
-    \centering
-    \begin{tabular}{||c|c|c||}
-        \hline
-        \hline
-        \textbf{Colors}     &   \textbf{Actual Colors}      &       \textbf{Similarity} \\
-        \hline
-        256                 &   65                          &       19.79               \\
-        \hline
-        128                 &   37                          &       26.39               \\
-        \hline
-        64                  &   21                          &       40.94               \\
-        \hline
-        32                  &   15                          &       59.43               \\
-        \hline
-        16                  &   9                           &       103.58              \\
-        \hline
-        8                   &   6                           &       171.95              \\
-        \hline
-        4                   &   4                           &       325.18              \\
-        \hline
-        \hline
-    \end{tabular}
-    \caption{Image similarity table for k-means}
-    \label{tab:km-sim}
-\end{table}
-
-\iffalse
-\section{Results}
-\subsection{XOR Function}
-Im Homework 3\cite{HW3}, we used a single perceptron to plot a decision boundary for the logical AND and OR functions. However, as demonstrated in that assignment, one perceptron is unable to converge for XOR. Using a multi-layer, sigmoidal neural network, we are able to demonstrate convergence of the XOR function (see Table \ref{tab:sig-xor} for truth table).
-\begin{center}
-    \centering
-    \begin{tabular}{||c|c||}
-        \textbf{Input}  &   \textbf{Output}     \\
-        0,0             &   0                   \\
-        0,1             &   1                   \\
-        1,0             &   1                   \\
-        1,1             &   0                   \\
-    \end{tabular}
-    \captionof{table}{XOR truth table}
-    \label{tab:sig-xor}
-\end{center}
-
-Some tuning was needed to get this to work. The default 30 epochs was not enough. To have a chance at convergence, 10,000 epochs were needed. However, even with the full 10,000 epochs, the output was not always correct. Figure \ref{fig:xor-wrong1} shows a decision boundary that is questionable. The boundary seems to rest right on the desired values, but close examination reveals that not every possible outcome is correct. Figures \ref{fig:xor-wrong2} and \ref{fig:xor-wrong3} show decision boundaries that are blatantly incorrect. In both of these, the result is the exact opposite of what it should be. The network used in all these examples consisted of an input layer with two sigmoid neurons, and output layer with one sigmoid neuron, and a hidden layer with two sigmoid neurons.
-
-\begin{center}
-    \centering
-    \includegraphics[width=0.5\linewidth]{xor_wrong1}
-    \captionof{figure}{Incorrect XOR result number one}
-    \label{fig:xor-wrong1}
-\end{center}
-
-\begin{center}
-    \centering
-    \includegraphics[width=0.5\linewidth]{xor_wrong2}
-    \captionof{figure}{Incorrect XOR result number two}
-    \label{fig:xor-wrong2}
-\end{center}
-
-\begin{center}
-    \centering
-    \includegraphics[width=0.5\linewidth]{xor_wrong3}
-    \captionof{figure}{Incorrect XOR result number three}
-    \label{fig:xor-wrong3}
-\end{center}
-
-On the other hand, figures \ref{fig:xor-1}, \ref{fig:xor-2}, and \ref{fig:xor-3} show decision boundaries that DO converge.
-
-\begin{center}
-    \centering
-    \includegraphics[width=0.5\linewidth]{xor1}
-    \captionof{figure}{Correct XOR result number one}
-    \label{fig:xor-1}
-\end{center}
-
-\begin{center}
-    \centering
-    \includegraphics[width=0.5\linewidth]{xor2}
-    \captionof{figure}{Correct XOR result number two}
-    \label{fig:xor-2}
-\end{center}
-
-\begin{center}
-    \centering
-    \includegraphics[width=0.5\linewidth]{xor3}
-    \captionof{figure}{Correct XOR result number three}
-    \label{fig:xor-3}
-\end{center}
-
-There is one enormous difference that immediately stands out between this network and the perceptron \ref{HW3}: there are curved and discontiguous decision boundaries. This comes from two factors: there is more than one neuron in the network, and the sigmoid neurons (thanks to their output being a real number between zero and one instead of a binary value like the perceptron) can produce nonlinear boundaries.
-
-Something else we see is that the decision boundaries are not the same each time. In the case of a single perceptron, we saw very uniform boundaries: in addition to being a straight line, they were ``mostly'' identical each run. With the neural network, we see vast differences in between runs. This is because the weights and biases start at random values, and therefore converge to different values as the network trains. Even if the known answers are correct, the results in between are ``fuzzier.'' This also explains why sometimes we reached a correct convergence and other times we did not.
-
-To improve the accuracy of the network, we attempted to change the learning rate and found that a rate of 0.1 produced the best results. Lower than that resulted in correct output less frequently, which higher resulted in questionable decision boundaries. Adjusting the number of epochs improved the percentage of correct answers received. With 10,000 epochs, a correct output was received about one quarter of the time. With 20,000 epochs, we got closer to half right. Much higher slowed the performance to an unacceptable level, but we are confident that with 40,000 or 50,000 epochs we would have correct answers the vast majority of the time.
-
-Due to the small number of training inputs (see Table \ref{tab:sig-xor}), the mini-batch size had little effect on this neural network's performance to the point where any differences cannot be quantified, however we did test with mini-batch sizes of one, two, and four for completeness.
-
-\subsection{MNIST Digit Recognition}
-
-Before beginning, we need to note that these tests were run on a laptop. Some of them were run during a day where weather was very poor and power was not reliably available, resulting in some inconsistencies and an inability to run some of the desired tests. All tests that were able to be completed successfully are shown below.
-
-\textbf{\large{Network Depth}} \\
-Networks with a depth from two to ten layers were tested. To provide consistency, each hidden layer in these tests contains 50 neurons. Due to software requirements, the input layer always contains 784 neurons and the output layer always contains ten. Each test was limited to 30 epochs. Accuracy per epoch was measured to judge network accuracy and time per epoch was measured to judge network performance.
-
-Figure \ref{fig:depth-times} shows the affect of network depth on completion time. There is a proportional increase of time as depth increases, with the largest jump from two to three layers. This is a sensible result, since a two layer network is incredibly simple and does not have the level of backpropagation complexity that networks with lots of hidden layers have. As hidden layers are added, complexity increases, and therefore completion time also increases.
-
-\begin{center}
-    \centering
-    \includegraphics[width=0.75\linewidth]{depth_times}
-    \captionof{figure}{Epoch completion times with varying network depths.}
-    \label{fig:depth-times}
-\end{center}
-
-Figure \ref{fig:depth-acc} shows the effect of network depth on model accuracy. The depth two network converges quickly but has the worst overall accuracy, while the depth ten network has the worst initial accuracy. After 30 epochs, all networks converge to roughly the same overall accuracy (well over 90\%), but the deeper networks take longer to reach this potential and are still slightly lower at the end than the others. This can be explained as both an overfitting problem and an issue with the number of layers resulting in poorer starting conditions and therefore slower convergence.
-
-\begin{center}
-    \centering
-    \includegraphics[width=0.75\linewidth]{depth_acc}
-    \captionof{figure}{Accuracy with varying network depths.}
-    \label{fig:depth-acc}
-\end{center}
-
-\textbf{\large{Hidden Layer Width}} \\
-Networks with hidden layers ranging of one, ten, 25, 50, 75, and 100 neurons were tested. Due to software requirements, the input layer contains 784 neurons and the output layer contains ten. These networks are all three-layer networks (one input layer, one output layer, and the resizeable hidden layer). Each test was limited to 30 epochs. Accuracy and time were measured to judge network performance.
-
-A hidden layer width of 784 was desired, but could not be tested due to its prohibitive performance. Indeed, it was noted that increasing the width of the hidden layer had an enormous impact on performance, to the point where this test could not reasonably run. The test machine became extremely hot and took several minutes to complete an epoch. Even if the test had completed, due to the machine getting hot and limiting its clock speed, the results would be suspect. 
-
-Figure \ref{fig:width-times} shows the effect of hidden layer width on completion time. There is a large, seven-fold time difference between the narrowest and widest network, which explains why the super-wide 784-width network was unfeasible. As with network depth, this result comes as no surprise considering the increased computational burden that arises as the width of the network increases and the relatively weak computing power of the available test machine.
-
-\begin{center}
-    \centering
-    \includegraphics[width=0.75\linewidth]{width_times}
-    \captionof{figure}{Epoch completion times with varying network widths.}
-    \label{fig:width-times}
-\end{center}
-
-Figure \ref{width-acc} shows the effect on accuracy as network width increases. A width-one network has the worse performance, which makes sense considering the ``vagueness'' of the sole neuron in its hidden layer. Width 100 was the second worse, which may be indicative of an overfitting problem. Width 50 was the best, while width 75 finished with similar final performance by converged more slowly. Widths 10 and 25 were unremarkable, but their performance was fairly constant and they finished with respectable accuracy.
-
-This result suggests that there is a sweet spot for the width of the hidden layers in a neural network. In this case, that number is between 50 and 75, but the answer is almost assuredly problem-specific and we therefore will not attempt to generalize.
-
-\begin{center}
-    \centering
-    \includegraphics[width=0.75\linewidth]{width_acc}
-    \captionof{figure}{Accuracy with varying network widths.}
-    \label{fig:width-acc}
-\end{center}
-
-\textbf{\large{Learning Rate}} \\
-Learning rates of .01, .10, .25, 1.0, 5.0, and 25.0 were tested. Each network in these tests consisted of 784 input neurons, 10 output neurons, and a 50-neuron hidden layer. The tests were run for 30 epochs.
-
-Figure \ref{fig:lr-times} shows the average completion time of an epoch as learning rate varies. There is no significant different in time as learning rate changes. This result is sensible since the number of epochs is fixed and the network complexity is the same in all tests.
-
-\begin{center}
-    \centering
-    \includegraphics[width=0.75\linewidth]{lr_times}
-    \captionof{figure}{Epoch completion times with varying learning rates.}
-    \label{fig:lr-times}
-\end{center}
-
-Figure \ref{fig:lr-acc} shows the network accuracy as learning rate changes. As expected, low learning rates show signs of converging, but do so slowly. High learning rates have poor accuracy because the large error results in the network ``jumping'' around the correct output and therefore failing to converge. Lower learning rates converge more slowly, but all show signs of eventually converging, with a learning rate of 5.0 seeming ideal for THIS PROBLEM with THESE PARAMETERS. Again, we do not with to present this as a universal answer given the nature of neural networks.
-
-\begin{center}
-    \centering
-    \includegraphics[width=0.75\linewidth]{lr_acc}
-    \captionof{figure}{Network accuract with varying learning rates.}
-    \label{fig:lr-acc}
-\end{center}
-
-\textbf{\large{Mini-Batch Size}} \\
-Mini-batch sizes of 1, 50, 100, 1000, and 5000 were tested. Each of these tests of consists of a network with 784 input neurons, 10 output neurons, and a 50-neuron hidden layer. The tests were run for 30 epochs.
-
-Figure \ref{fig:mb-times} shows average epoch time as the size of the mini-batches varies. When using a mini-batch size of one (i.e. online processing), performance is worse. Performance is virtually the same for all other cases. The poor performance of online processing makes sense due to the huge number of calculations that must be performed; however, we were expecting improving performance as batch sized increased for further changes as well, and this was not seen.
-
-\begin{center}
-    \centering
-    \includegraphics[width=0.75\linewidth]{mb_times}
-    \captionof{figure}{Epoch completion times with varying mini-batch sizes.}
-    \label{fig:mb-times}
-\end{center}
-
-Figure \ref{fig:mb-acc} shows the effect of mini-batch size on accuracy. A mini-batch size of one seems to reach its peak accuracy quickly, but does not perform well. Larger batch sizes show signs of converging more slowly: this is explainable as a side-effect of using SGD: larger batches results in fewer stochastic gradients taken each epoch, which means the error correction rate is slower. In this case, a batch size of 50 converges quickly and has good accuracy after 30 epochs, but, as with everything else, this number should be seen as problem-specific and not universal. 
-
-\begin{center}
-    \centering
-    \includegraphics[width=0.75\linewidth]{mb_acc}
-    \captionof{figure}{Network accuracy with varying mini-batch sizes.}
-    \label{fig:mb-acc}
-\end{center}
 
 \section{Discussion}
 
-In this assignment, we used existing sigmoidal neural network code to implement the XOR logical function and the MNIST handwritten digit recognition test. We proved that a multi-layer sigmoidal neural network is capable of creating a decision boundary for XOR, but that the results CAN be incorrect and are prone to some inconsistency, depending on the number of epochs. Given the randomness that goes into the network's starting conditions, it is not expected to get identical results each time, so this result is considered acceptable. The XOR function requires a huge number of epochs to converge well, unlike the MNIST problem. This has to do with its relatively tiny training set.
+\section{Appendix}
 
-We also studied the effects of increased network depth, increased hidden layer width, learning rate, and batch size on network accuracy and classification time.
-
-Varying the network depth had a pronounced effect on completion time. Two-layer networks performed poorly, but all others converged to roughly the same accuracy given 30 epochs. While this result is almost definitely problem-specific and there is no ``right'' universal answer, it is safe to say that, in this case, depth is less important if you have the time to run many epochs. If you do not, a depth three, four, or five network converges quickly with acceptable results.
-
-Varying the network width had a large effect on both performance and accuracy, with both extremely narrow and extremely wide networks showing poor accuracy. In the former case, this is explained by too few neurons trying to categorize too much information. In the latter case, we believe this is an overfitting problem - the network is trained to the training set exactly, and does a poor job categorizing data not present in the training set.
-
-Varying the learning rate had virtually no effect on per-epoch completion time, but had huge effects on model accuracy. Low learning rate resulted in slow convergence, which is expected (conversely, this could result in poor time performance if we were looking for accuracy and not just a fixed number of epochs). High learning rates had poor accuracy, due to large jumps between epochs resulting in a failure to ever settle on the right answer. As usual, we believe the desireable answer of ``5.0'' in this case is highly problem-specific and not universal.
-
-Varying the mini-batch size had little effect on per-epoch time with the exception of a batch size of one (effectively online processing). While online processing being the slowest was expected, the nearly-identical performance for other mini-batch sizes was not expected. The mini-batch size, however, had large effects on performance, with large mini batches taking longer to converge and having lower starting accuracies than smaller mini-batch sizes.
-
-\fi
 \clearpage
 \bibliography{sources}
 \bibliographystyle{ieeetr}
-\iffalse
-\clearpage
-\section{Appendix}
-Comments in source files will have to be modified to run the tests we ran. There is no way to run them all at once. Please note that the bulk of the tests are very time-consuming, depending on the machine you are testing on.
 
-\subsection{main.py} 
-\textit{main.py} contains the work to actually run tests.
-\lstinputlisting[language=Python, basicstyle=\small, breaklines=true]{main.py}
-
-\subsection{mkfigs.py}
-\textit{mkfigs.py} handles plotting of all figures.
-\lstinputlisting[language=Python, basicstyle=\small, breaklines=true]{mkfigs.py}
-
-\subsection{network.py}
-\textit{network} handles is the actual neural network code.
-\lstinputlisting[language=Python, basicstyle=\small, breaklines=true]{network.py}
-\fi
 \end{document}
