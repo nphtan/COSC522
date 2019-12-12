@@ -31,6 +31,7 @@ class KMeans:
         random.seed(seed)
         xs = xs.T
         clusters = []
+        preds = [0 for x in range(len(xs))]
         for i in range(self.k):
             cluster = []
             for j in range(xs.shape[1]):
@@ -60,6 +61,7 @@ class KMeans:
                         mindist = d
                 clusters[mindex][1].append(list(xs[h]))
                 clusters[mindex][2].append(test_labels[h])
+                preds[h] = mindex
 
             for cluster in clusters:
                 #print(cluster[1])
@@ -105,5 +107,8 @@ class KMeans:
         print('TNR: {}'.format(tnr))
         print('FPR: {}'.format(fpr))
         print('FNR: {}'.format(fnr))
+#        print(preds)
+        print(len(preds), len(xs))
+        return preds
 
 
