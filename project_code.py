@@ -618,8 +618,8 @@ def main():
 #    kmeans.predict(test_features, test_labels)
 #    wta = WTA(2)
 #    wta.predict(test_features, test_labels, e=0.01)
-    kmap = KMap(2)
-    kmap.predict(test_features, test_labels, e=0.001, iters=100)
+#    kmap = KMap(2)
+#    kmap.predict(test_features, test_labels, e=0.001, iters=100)
 
 #    m = 5
 #    sets = m_fold_cross_validation(tweets, 0, m)
@@ -638,10 +638,9 @@ def main():
 #        print("BGNN")
 #        net = Network([train_features.shape[0], 10, 2])
 #        conf_mats[i,:,:] = net.SGD(train_features, train_labels, 1000, 1, 0.05, test_features, test_labels)
-    kmap.predict(test_features, test_labels, e=0.0000001, iters=1000)
->>>>>>> af9e5ea80a3020540691108461d9f3acbcd050ec
+#    kmap.predict(test_features, test_labels, e=0.0000001, iters=1000)
 
-    m = 5
+    m = 10
     sets = m_fold_cross_validation(tweets, 0, m)
     print(len(sets))
     num_test = len(sets[0][0][1])
@@ -657,13 +656,13 @@ def main():
         standardize(test_features, mean, sigma)
 
 #        fld = FLD()
-#        fld.setup(features, true_labels)
-#        features = fld.reduce(features)
+#        fld.setup(train_features, train_labels)
+#        train_features = fld.reduce(train_features)
 #        test_features = fld.reduce(test_features)
-#    
+    
 #        pca = PCA()
-#        pca.setup(features, 0.8)
-#        features = pca.reduce(features)
+#        pca.setup(train_features, 0.8)
+#        train_features = pca.reduce(train_features)
 #        test_features = pca.reduce(test_features)
 #        print(pca.eigenvalues)
    
@@ -686,10 +685,27 @@ def main():
 #        print('FP:',fp)
 #        print('FN:',fn)
 
+        kmeans = KMeans(2)
+        kmeans.predict(test_features, test_labels)
+        wta = WTA(2)
+        wta.predict(test_features, test_labels, e=0.01)
+        kmap = KMap(2)
+        kmap.predict(test_features, test_labels, e=0.001, iters=100)
+#
+#        predictions = np.zeros((2,ymodel.shape[0]))
+#        predictions[0,:] = ymodel.T
+#        fused = majority_vote(predictions)
+#        tp,tn,fn,fp = perf_eval(fused, test_labels)
+#        print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#        print('TP:',tp)
+#        print('TN:',tn)
+#        print('FP:',fp)
+#        print('FN:',fn)
+
 #        print("SVM linear")
 #        clf = svm.SVC(kernel='linear', gamma='auto')
 #        clf.probability = True
-#        clf.fit(features.T, true_labels)
+#        clf.fit(train_features.T, train_labels)
 #        ymodel = clf.predict(test_features.T)
 #        prob = clf.predict_proba(test_features.T)
 #        fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
@@ -701,11 +717,11 @@ def main():
 #        print('TN:',tn)
 #        print('FP:',fp)
 #        print('FN:',fn)
-    
+#   
 #        print("SVM poly")
 #        clf = svm.SVC(kernel='poly', gamma='auto')
 #        clf.probability = True
-#        clf.fit(features.T, true_labels)
+#        clf.fit(train_features.T, train_labels)
 #        ymodel = clf.predict(test_features.T)
 #        prob = clf.predict_proba(test_features.T)
 #        fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
@@ -717,11 +733,11 @@ def main():
 #        print('TN:',tn)
 #        print('FP:',fp)
 #        print('FN:',fn)
-    
+#   
 #        print("SVM rbf")
 #        clf = svm.SVC(kernel='rbf', gamma='auto')
 #        clf.probability = True
-#        clf.fit(features.T, true_labels)
+#        clf.fit(train_features.T, train_labels)
 #        ymodel = clf.predict(test_features.T)
 #        prob = clf.predict_proba(test_features.T)
 #        fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
@@ -733,11 +749,11 @@ def main():
 #        print('TN:',tn)
 #        print('FP:',fp)
 #        print('FN:',fn)
-    
+#   
 #        print("SVM sigmoid")
 #        clf = svm.SVC(kernel='sigmoid', gamma='auto')
 #        clf.probability = True
-#        clf.fit(features.T, true_labels)
+#        clf.fit(train_features.T, train_labels)
 #        ymodel = clf.predict(test_features.T)
 #        prob = clf.predict_proba(test_features.T)
 #        fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
@@ -768,27 +784,66 @@ def main():
 #        print('FN:',fn)
 
         print("BPNN")
-        net = Network([train_features.shape[0], 10, 2])
+        net = Network([train_features.shape[0], 10, 10, 2])
         conf_mats[0,:,:],bpnn_pred = net.SGD(train_features, train_labels, 1000, 1, 0.05, test_features, test_labels)
 #        all_labels[0,:] = np.array(bpnn_pred)
-        prob = net.SGD_prob(train_features, train_labels, 100, 1, 0.10, test_features, test_labels)
-        fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
-        plt.figure()
-        plot_roc(fper, tper)
-#
-#        true = np.count_nonzero(true_labels)/true_labels.shape[0]
+#        prob = net.SGD_prob(train_features, train_labels, 100, 1, 0.10, test_features, test_labels)
+#        fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#        plt.figure()
+#        plot_roc(fper, tper)
+
+#        train_labels = np.array(train_labels)
+#        test_labels = np.array(test_labels)
+#        true = np.count_nonzero(train_labels)/train_labels.shape[0]
 #        false = 1-true
 #        print("MPP case 1")
 #        mpp = MPP(1)
 #        mpp.set_prior(false, true)
-#        mpp.fit(features, true_labels)
+#        mpp.fit(train_features, train_labels)
 #        mpp_pred1 = mpp.predict(test_features)
 #        prob = mpp.predict_prob(test_features)
 #        fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#        tp,tn,fn,fp = perf_eval(mpp_pred1, test_labels)
+#        print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#        print('TP:',tp)
+#        print('TN:',tn)
+#        print('FP:',fp)
+#        print('FN:',fn)
+#        plt.figure()
+#        plot_roc(fper, tper)
+#        print("MPP case 2")
+#        mpp = MPP(2)
+#        mpp.set_prior(false, true)
+#        mpp.fit(train_features, train_labels)
+#        mpp_pred2 = mpp.predict(test_features)
+#        prob = mpp.predict_prob(test_features)
+#        fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#        tp,tn,fn,fp = perf_eval(mpp_pred2, test_labels)
+#        print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#        print('TP:',tp)
+#        print('TN:',tn)
+#        print('FP:',fp)
+#        print('FN:',fn)
+#        plt.figure()
+#        plot_roc(fper, tper)
+#        print("MPP case 3")
+#        mpp = MPP(3)
+#        mpp.set_prior(false, true)
+#        mpp.fit(train_features, train_labels)
+#        mpp_pred3 = mpp.predict(test_features)
+#        prob = mpp.predict_prob(test_features)
+#        fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
+#        tp,tn,fn,fp = perf_eval(mpp_pred3, test_labels)
+#        print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#        print('TP:',tp)
+#        print('TN:',tn)
+#        print('FP:',fp)
+#        print('FN:',fn)
 #        plt.figure()
 #        plot_roc(fper, tper)
 #    print(conf_mats)
     print(conf_mats)
+    plt.show()
 
 
 if __name__ == "__main__":
