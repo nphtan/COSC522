@@ -43,11 +43,11 @@ def extract_features(data):
         features[4,i] = tweet.lower().count('http')
         features[5,i] = tweet.count('#')
         features[6,i] = tweet.count('"')
-        features[7,i] = tweet.count(',')
-        features[8,i] = tweet.count('.')
-#        features[6,i] = tweet.lower().count('trump') + tweet.lower().count('donald') 
-#        features[7,i] = tweet.lower().count('maga') + tweet.lower().count('make america great again') + tweet.lower().count('makeamericagreatagain') + tweet.lower().count('make #americagreatagain') + tweet.lower().count('make america') + tweet.lower().count('great again')
-#        features[8,i] = tweet.lower().count('loser')
+#        features[7,i] = tweet.count(',')
+#        features[8,i] = tweet.count('.')
+        features[7,i] = tweet.lower().count('trump') + tweet.lower().count('donald') 
+        features[8,i] = tweet.lower().count('maga') + tweet.lower().count('make america great again') + tweet.lower().count('makeamericagreatagain') + tweet.lower().count('make #americagreatagain') + tweet.lower().count('make america') + tweet.lower().count('great again')
+ #       features[8,i] = tweet.lower().count('loser')
     return features
 
 def nb_fusion(conf_mat, labels):
@@ -613,13 +613,33 @@ def main():
 #    plot_roc(fper, tper)
 
     #plt.show()
-    #kmeans = KMeans(2)
-    #kmeans.predict(features, true_labels)
-    #kmeans.predict(test_features, test_labels)
-    #wta = WTA(2)
-    #wta.predict(test_features, test_labels, e=0.0005)
-#    kmap = KMap(2)
-#    kmap.predict(test_features, test_labels, e=0.0000001, iters=1000)
+#    kmeans = KMeans(2)
+#    kmeans.predict(features, true_labels)
+#    kmeans.predict(test_features, test_labels)
+#    wta = WTA(2)
+#    wta.predict(test_features, test_labels, e=0.01)
+    kmap = KMap(2)
+    kmap.predict(test_features, test_labels, e=0.001, iters=100)
+
+#    m = 5
+#    sets = m_fold_cross_validation(tweets, 0, m)
+#    print(len(sets))
+#    conf_mats = np.zeros((m,2,2))
+#    for i in range(0,m):
+#        train,test = sets[i]
+#        train_tweets,train_labels = train
+#        test_tweets,test_labels = test
+#        train_features = extract_features(train_tweets)
+#        test_features = extract_features(test_tweets)
+#        mean = np.mean(train_features, axis=1).reshape((train_features.shape[0],1))
+#        sigma = np.std(train_features, axis=1).reshape((train_features.shape[0],1))
+#        standardize(train_features, mean, sigma)
+#        standardize(test_features, mean, sigma)
+#        print("BGNN")
+#        net = Network([train_features.shape[0], 10, 2])
+#        conf_mats[i,:,:] = net.SGD(train_features, train_labels, 1000, 1, 0.05, test_features, test_labels)
+    kmap.predict(test_features, test_labels, e=0.0000001, iters=1000)
+>>>>>>> af9e5ea80a3020540691108461d9f3acbcd050ec
 
     m = 5
     sets = m_fold_cross_validation(tweets, 0, m)
@@ -767,50 +787,8 @@ def main():
 #        fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
 #        plt.figure()
 #        plot_roc(fper, tper)
-#        tp,tn,fn,fp = perf_eval(mpp_pred1, test_labels)
-#        print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
-#        print('TP:',tp)
-#        print('TN:',tn)
-#        print('FP:',fp)
-#        print('FN:',fn)
-#    
-#        print("MPP case 2")
-#        mpp = MPP(2)
-#        mpp.set_prior(false, true)
-#        mpp.fit(features, true_labels)
-#        mpp_pred2 = mpp.predict(test_features)
-#        prob = mpp.predict_prob(test_features)
-#        fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
-#        plt.figure()
-#        plot_roc(fper, tper)
-#        tp,tn,fn,fp = perf_eval(mpp_pred2, test_labels)
-#        print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
-#        print('TP:',tp)
-#        print('TN:',tn)
-#        print('FP:',fp)
-#        print('FN:',fn)
-#
-#        print("MPP 3")
-#        mpp = MPP(3)
-#        mpp.set_prior(false, true)
-#        mpp.fit(features, true_labels)
-#        mpp_pred3 = mpp.predict(test_features)
-#        prob = mpp.predict_prob(test_features)
-#        fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
-#        plt.figure()
-#        plot_roc(fper, tper)
-#        tp,tn,fn,fp = perf_eval(mpp_pred3, test_labels)
-#        print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
-#        print('TP:',tp)
-#        print('TN:',tn)
-#        print('FP:',fp)
-#        print('FN:',fn)
-#        conf_mats[1,:,:] = confusion_matrix(mpp_pred3, test_labels)
-#        all_labels[1,:] = mpp_pred3
-#        table,key = nb_fusion(conf_mats, list(test_labels))
-#        print(table)
-    plt.show()
-
+#    print(conf_mats)
+    print(conf_mats)
 
 
 if __name__ == "__main__":
