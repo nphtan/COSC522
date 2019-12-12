@@ -48,6 +48,27 @@ def extract_features(data):
  #       features[8,i] = tweet.lower().count('loser')
     return features
 
+def nb_fusion(conf_mat):
+    num_classifiers = conf_mat.shape[0]
+
+def majority_vote(predictions):
+    num_classifiers = predictions.shape[0]
+    num_samples = predictions.shape[1]
+    fused = np.zeros(num_samples)
+    for i in range(0, num_samples):
+        yes = 0
+        no = 0
+        for j in range(0, num_classifiers):
+            if predictions[j,i] == 0.0:
+                no += 1
+            else:
+                yes += 1
+        if yes > no:
+            fused[i] = 1.0
+        else:
+            fused[i] = 0.0
+    return fused
+
 def standardize(data, mean, sigma):
     for i in range(0, data.shape[1]):
         x = data[:,i].reshape(mean.shape)
@@ -494,17 +515,18 @@ def main():
 #    print('FP:',fp)
 #    print('FN:',fn)
 
+#    true = np.count_nonzero(true_labels)/true_labels.shape[0]
+#    false = 1-true
 #    print("MPP case 1")
 #    mpp = MPP(1)
-##    mpp.set_prior(num_train_other/num_train_tweets, num_train_person/num_train_tweets)
-#    mpp.set_prior(0.2, 0.8)
+#    mpp.set_prior(false, true)
 #    mpp.fit(features, true_labels)
-#    ymodel = mpp.predict(test_features)
+#    mpp_pred1 = mpp.predict(test_features)
 #    prob = mpp.predict_prob(test_features)
 #    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
 #    plt.figure()
 #    plot_roc(fper, tper)
-#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    tp,tn,fn,fp = perf_eval(mpp_pred1, test_labels)
 #    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
 #    print('TP:',tp)
 #    print('TN:',tn)
@@ -513,15 +535,14 @@ def main():
 #
 #    print("MPP case 2")
 #    mpp = MPP(2)
-##    mpp.set_prior(num_train_other/num_train_tweets, num_train_person/num_train_tweets)
-#    mpp.set_prior(0.2, 0.8)
+#    mpp.set_prior(false, true)
 #    mpp.fit(features, true_labels)
-#    ymodel = mpp.predict(test_features)
+#    mpp_pred2 = mpp.predict(test_features)
 #    prob = mpp.predict_prob(test_features)
 #    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
 #    plt.figure()
 #    plot_roc(fper, tper)
-#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    tp,tn,fn,fp = perf_eval(mpp_pred2, test_labels)
 #    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
 #    print('TP:',tp)
 #    print('TN:',tn)
@@ -530,20 +551,33 @@ def main():
 #
 #    print("MPP case 3")
 #    mpp = MPP(3)
-##    mpp.set_prior(num_train_other/num_train_tweets, num_train_person/num_train_tweets)
-#    mpp.set_prior(0.2, 0.8)
+#    mpp.set_prior(false, true)
 #    mpp.fit(features, true_labels)
-#    ymodel = mpp.predict(test_features)
+#    mpp_pred3 = mpp.predict(test_features)
 #    prob = mpp.predict_prob(test_features)
 #    fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
 #    plt.figure()
 #    plot_roc(fper, tper)
-#    tp,tn,fn,fp = perf_eval(ymodel, test_labels)
+#    tp,tn,fn,fp = perf_eval(mpp_pred3, test_labels)
 #    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
 #    print('TP:',tp)
 #    print('TN:',tn)
 #    print('FP:',fp)
 #    print('FN:',fn)
+#
+#    print("Fused MPP")
+#    mpp_predictions = np.zeros((3,mpp_pred1.shape[0]))
+#    mpp_predictions[0,:] = mpp_pred1.T
+#    mpp_predictions[1,:] = mpp_pred2.T
+#    mpp_predictions[2,:] = mpp_pred3.T
+#    mpp_fused = majority_vote(mpp_predictions)
+#    tp,tn,fn,fp = perf_eval(mpp_fused, test_labels)
+#    print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
+#    print('TP:',tp)
+#    print('TN:',tn)
+#    print('FP:',fp)
+#    print('FN:',fn)
+
 
 #    print("BGNN")
 #    num_features = 7
@@ -580,11 +614,31 @@ def main():
 #        print("BGNN")
 #        net = Network([train_features.shape[0], 10, 2])
 #        conf_mats[i,:,:] = net.SGD(train_features, train_labels, 1000, 1, 0.05, test_features, test_labels)
+    kmap.predict(test_features, test_labels, e=0.0000001, iters=1000)
+
+    m = 5
+    sets = m_fold_cross_validation(tweets, 0, m)
+    print(len(sets))
+    conf_mats = np.zeros((m,2,2))
+    for i in range(0,m):
+        train,test = sets[i]
+        train_tweets,train_labels = train
+        test_tweets,test_labels = test
+        train_features = extract_features(train_tweets)
+        test_features = extract_features(test_tweets)
+        mean = np.mean(train_features, axis=1).reshape((train_features.shape[0],1))
+        sigma = np.std(train_features, axis=1).reshape((train_features.shape[0],1))
+        standardize(train_features, mean, sigma)
+        standardize(test_features, mean, sigma)
+        print("BGNN")
+        net = Network([train_features.shape[0], 10, 2])
+        conf_mats[i,:,:] = net.SGD(train_features, train_labels, 1000, 1, 0.05, test_features, test_labels)
 #        prob = net.SGD_prob(train_features, train_labels, 100, 1, 0.10, test_features, test_labels)
 #        fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
 #        plt.figure()
 #        plot_roc(fper, tper)
 #    print(conf_mats)
+    print(conf_mats)
 
 
 if __name__ == "__main__":
