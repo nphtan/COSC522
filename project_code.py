@@ -41,10 +41,10 @@ def extract_features(data):
         features[4,i] = tweet.lower().count('http')
         features[5,i] = tweet.count('#')
         features[6,i] = tweet.count('"')
-#        features[7,i] = tweet.count(',')
-#        features[8,i] = tweet.count('.')
-        features[7,i] = tweet.lower().count('trump') + tweet.lower().count('donald') 
-        features[8,i] = tweet.lower().count('maga') + tweet.lower().count('make america great again') + tweet.lower().count('makeamericagreatagain') + tweet.lower().count('make #americagreatagain') + tweet.lower().count('make america') + tweet.lower().count('great again')
+        features[7,i] = tweet.count(',')
+        features[8,i] = tweet.count('.')
+#        features[7,i] = tweet.lower().count('trump') + tweet.lower().count('donald') 
+#        features[8,i] = tweet.lower().count('maga') + tweet.lower().count('make america great again') + tweet.lower().count('makeamericagreatagain') + tweet.lower().count('make #americagreatagain') + tweet.lower().count('make america') + tweet.lower().count('great again')
  #       features[8,i] = tweet.lower().count('loser')
     return features
 
@@ -328,11 +328,11 @@ def main():
 #    nort_features = fld.reduce(nort_features)
 #    test_features2 = fld.reduce(test_features2)
 
-#    pca = PCA()
-#    pca.setup(features, 0.8)
-#    features = pca.reduce(features)
-#    test_features = pca.reduce(test_features)
-#    print(pca.eigenvalues)
+    pca = PCA()
+    pca.setup(features, 0.8)
+    features = pca.reduce(features)
+    test_features = pca.reduce(test_features)
+    print(pca.eigenvalues)
 #
 #    pca2 = PCA()
 #    pca2.setup(nort_features, 0.8)
@@ -596,6 +596,7 @@ def main():
 #    wta.predict(test_features, test_labels, e=0.01)
     kmap = KMap(2)
     kmap.predict(test_features, test_labels, e=0.001, iters=100)
+#    kmap.predict(test_features, test_labels, e=0.0000001, iters=1000)
 
 #    m = 5
 #    sets = m_fold_cross_validation(tweets, 0, m)
@@ -614,25 +615,24 @@ def main():
 #        print("BGNN")
 #        net = Network([train_features.shape[0], 10, 2])
 #        conf_mats[i,:,:] = net.SGD(train_features, train_labels, 1000, 1, 0.05, test_features, test_labels)
-    kmap.predict(test_features, test_labels, e=0.0000001, iters=1000)
 
-    m = 5
-    sets = m_fold_cross_validation(tweets, 0, m)
-    print(len(sets))
-    conf_mats = np.zeros((m,2,2))
-    for i in range(0,m):
-        train,test = sets[i]
-        train_tweets,train_labels = train
-        test_tweets,test_labels = test
-        train_features = extract_features(train_tweets)
-        test_features = extract_features(test_tweets)
-        mean = np.mean(train_features, axis=1).reshape((train_features.shape[0],1))
-        sigma = np.std(train_features, axis=1).reshape((train_features.shape[0],1))
-        standardize(train_features, mean, sigma)
-        standardize(test_features, mean, sigma)
-        print("BGNN")
-        net = Network([train_features.shape[0], 10, 2])
-        conf_mats[i,:,:] = net.SGD(train_features, train_labels, 1000, 1, 0.05, test_features, test_labels)
+#    m = 5
+#    sets = m_fold_cross_validation(tweets, 0, m)
+#    print(len(sets))
+#    conf_mats = np.zeros((m,2,2))
+#    for i in range(0,m):
+#        train,test = sets[i]
+#        train_tweets,train_labels = train
+#        test_tweets,test_labels = test
+#        train_features = extract_features(train_tweets)
+#        test_features = extract_features(test_tweets)
+#        mean = np.mean(train_features, axis=1).reshape((train_features.shape[0],1))
+#        sigma = np.std(train_features, axis=1).reshape((train_features.shape[0],1))
+#        standardize(train_features, mean, sigma)
+#        standardize(test_features, mean, sigma)
+#        print("BGNN")
+#        net = Network([train_features.shape[0], 10, 2])
+#        conf_mats[i,:,:] = net.SGD(train_features, train_labels, 1000, 1, 0.05, test_features, test_labels)
 #        prob = net.SGD_prob(train_features, train_labels, 100, 1, 0.10, test_features, test_labels)
 #        fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
 #        plt.figure()
