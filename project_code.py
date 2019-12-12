@@ -43,10 +43,10 @@ def extract_features(data):
         features[4,i] = tweet.lower().count('http')
         features[5,i] = tweet.count('#')
         features[6,i] = tweet.count('"')
-#        features[7,i] = tweet.count(',')
-#        features[8,i] = tweet.count('.')
-        features[7,i] = tweet.lower().count('trump') + tweet.lower().count('donald') 
-        features[8,i] = tweet.lower().count('maga') + tweet.lower().count('make america great again') + tweet.lower().count('makeamericagreatagain') + tweet.lower().count('make #americagreatagain') + tweet.lower().count('make america') + tweet.lower().count('great again')
+        features[7,i] = tweet.count(',')
+        features[8,i] = tweet.count('.')
+#        features[7,i] = tweet.lower().count('trump') + tweet.lower().count('donald') 
+#        features[8,i] = tweet.lower().count('maga') + tweet.lower().count('make america great again') + tweet.lower().count('makeamericagreatagain') + tweet.lower().count('make #americagreatagain') + tweet.lower().count('make america') + tweet.lower().count('great again')
  #       features[8,i] = tweet.lower().count('loser')
     return features
 
@@ -613,13 +613,15 @@ def main():
 #    plot_roc(fper, tper)
 
     #plt.show()
-#    kmeans = KMeans(2)
-#    kmeans.predict(features, true_labels)
-#    kmeans.predict(test_features, test_labels)
+    kmeans = KMeans(2)
+    kmeans.predict(features, true_labels)
+    kmeans.predict(test_features, test_labels)
+#    kmap.predict(test_features, test_labels, e=0.0000001, iters=1000)
 #    wta = WTA(2)
 #    wta.predict(test_features, test_labels, e=0.01)
 #    kmap = KMap(2)
 #    kmap.predict(test_features, test_labels, e=0.001, iters=100)
+#    kmap.predict(test_features, test_labels, e=0.0000001, iters=1000)
 
 #    m = 5
 #    sets = m_fold_cross_validation(tweets, 0, m)
@@ -666,8 +668,8 @@ def main():
 #        test_features = pca.reduce(test_features)
 #        print(pca.eigenvalues)
    
-        conf_mats = np.zeros((2,2,2))
-        all_labels = np.zeros((2,num_test))
+#        conf_mats = np.zeros((2,2,2))
+#        all_labels = np.zeros((2,num_test))
 
 #        print("Decision Tree")
 #        clf = tree.DecisionTreeClassifier()
