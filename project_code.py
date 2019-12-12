@@ -10,10 +10,13 @@ from sklearn import svm
 from sklearn.metrics import roc_curve
 from sklearn import tree
 from bpnn import Network
+from kmeans import KMeans
+from kohonen import KMap
+from wta import WTA
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-mpl.use('Qt4Agg')
+#mpl.use('Qt4Agg')
 
 def filter_retweets(data):
     no_rt = []
@@ -585,6 +588,15 @@ def main():
 #    plt.figure()
 #    plot_roc(fper, tper)
 
+    #plt.show()
+    #kmeans = KMeans(2)
+    #kmeans.predict(features, true_labels)
+    #kmeans.predict(test_features, test_labels)
+    #wta = WTA(2)
+    #wta.predict(test_features, test_labels, e=0.0005)
+    kmap = KMap(2)
+    kmap.predict(test_features, test_labels, e=0.0000001, iters=1000)
+
     m = 5
     sets = m_fold_cross_validation(tweets, 0, m)
     print(len(sets))
@@ -608,7 +620,6 @@ def main():
 #        plot_roc(fper, tper)
     print(conf_mats)
 
-    plt.show()
 
 if __name__ == "__main__":
     main()
