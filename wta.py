@@ -31,6 +31,7 @@ class WTA:
         random.seed(seed)
         xs = xs.T
         clusters = []
+        preds = [-1 for x in range(len(xs))]
         for i in range(self.k):
             cluster = []
             for j in range(xs.shape[1]):
@@ -59,12 +60,14 @@ class WTA:
             mindex = 0
             mindist = float('inf')
             for j in range(len(clusters)):
-                d = eucdist(xs[i], clusters[j][0])
+                d = np.linalg.norm(xs[i] - clusters[j][0], ord=norm)
+                print(d)
                 if d < mindist:
                     mindex = j
                     mindist = d
             clusters[mindex][1].append(xs[i])
             clusters[mindex][2].append(test_labels[i])
+            preds[i] = mindex
 
         print('ENDING CLUSTERS')
         for cluster in clusters:
@@ -102,5 +105,7 @@ class WTA:
         print('TNR: {}'.format(tnr))
         print('FPR: {}'.format(fpr))
         print('FNR: {}'.format(fnr))
+
+        return preds
 
 

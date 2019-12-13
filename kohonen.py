@@ -31,6 +31,7 @@ class KMap:
         random.seed(seed)
         xs = xs.T
         clusters = []
+        preds = [-1 for x in range(len(xs))]
         for i in range(self.k):
             cluster = []
             for j in range(xs.shape[1]):
@@ -70,6 +71,7 @@ class KMap:
                     mindist = d
             clusters[mindex][1].append(xs[i])
             clusters[mindex][2].append(test_labels[i])
+            preds[i] = mindex
         
         num0s = float(len([x for x in test_labels if x == 0]))
         num1s = float(len([x for x in test_labels if x == 1]))
@@ -104,4 +106,4 @@ class KMap:
         print('FPR: {}'.format(fpr))
         print('FNR: {}'.format(fnr))
 
-
+        return preds
