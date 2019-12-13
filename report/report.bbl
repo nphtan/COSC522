@@ -1,5 +1,37 @@
 \begin{thebibliography}{1}
 
+\bibitem{TSA1}
+H.~Wang, D.~Can, A.~Kazemzadeh, F.~Bar, and S.~Narayanan, ``A system for
+  real-time twitter sentiment analysis of 2012 u.s. presidential election
+  cycle,'' in {\em Proceedings of the ACL 2012 System Demonstrations}, ACL '12,
+  (Stroudsburg, PA, USA), pp.~115--120, Association for Computational
+  Linguistics, 2012.
+
+\bibitem{TSA2}
+H.~Saif, Y.~He, and H.~Alani, ``Semantic sentiment analysis of twitter,'' in
+  {\em The Semantic Web -- ISWC 2012} (P.~Cudr{\'e}-Mauroux, J.~Heflin,
+  E.~Sirin, T.~Tudorache, J.~Euzenat, M.~Hauswirth, J.~X. Parreira, J.~Hendler,
+  G.~Schreiber, A.~Bernstein, and E.~Blomqvist, eds.), (Berlin, Heidelberg),
+  pp.~508--524, Springer Berlin Heidelberg, 2012.
+
+\bibitem{TSA3}
+A.~Severyn and A.~Moschitti, ``Twitter sentiment analysis with deep
+  convolutional neural networks,'' in {\em Proceedings of the 38th
+  International ACM SIGIR Conference on Research and Development in Information
+  Retrieval}, SIGIR '15, (New York, NY, USA), pp.~959--962, ACM, 2015.
+
+\bibitem{TIA1}
+P.~Kapanipathi, P.~Jain, C.~Venkataramani, and A.~Sheth, ``User interests
+  identification on twitter using a hierarchical knowledge base,'' in {\em The
+  Semantic Web: Trends and Challenges} (V.~Presutti, C.~d'Amato, F.~Gandon,
+  M.~d'Aquin, S.~Staab, and A.~Tordai, eds.), (Cham), pp.~99--113, Springer
+  International Publishing, 2014.
+
+\bibitem{TLA1}
+J.~Mahmud, J.~Nichols, and C.~Drews, ``Home location identification of twitter
+  users,'' {\em ACM Trans. Intell. Syst. Technol.}, vol.~5, pp.~47:1--47:21,
+  July 2014.
+
 \bibitem{TweetSource}
 J.~Littiebrant, ``Raw twitter timelines w/ no retweets.''
   https://www.kaggle.com/speckledpingu/RawTwitterFeeds.
