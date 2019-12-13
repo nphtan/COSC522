@@ -27,7 +27,7 @@ class WTA:
             x = data[:,i].reshape(self.mean.shape)
             data[:,i] = ((x - self.mean) / self.sigma).reshape(x.shape[0])
 
-    def predict(self, xs, test_labels, e = 0.01, seed = 2):
+    def predict(self, xs, test_labels, e = 0.01, seed = 2, norm=2):
         random.seed(seed)
         xs = xs.T
         clusters = []

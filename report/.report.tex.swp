@@ -48,7 +48,7 @@ Each learning method was run multiple times (with a parameter sweep where approp
 
 \section{Experiments}
 
-All experiments used for this work were written in Python 3. 
+All experiments used for this work were written in Python 3. Several machine learning classifiers and data analytic techniques were used to explore various aspects of classification.
 
 \section{Results}
 

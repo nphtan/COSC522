@@ -27,7 +27,7 @@ class KMap:
             x = data[:,i].reshape(self.mean.shape)
             data[:,i] = ((x - self.mean) / self.sigma).reshape(x.shape[0])
 
-    def predict(self, xs, test_labels, n=2, e=0.01, iters=10, seed = 2):
+    def predict(self, xs, test_labels, n=2, e=0.01, iters=10, seed = 2, norm=2):
         random.seed(seed)
         xs = xs.T
         clusters = []
@@ -47,7 +47,7 @@ class KMap:
                 mindex = 0
                 mindist = float('inf')
                 for k in range(len(clusters)):
-                    d = eucdist(xs[j], clusters[k][0])
+                    d = np.linalg.norm(xs[j]-clusters[k][0], ord=norm)
                     if d < mindist:
                         mindex = k
                         mindist = d
@@ -55,7 +55,7 @@ class KMap:
                 for k in range(len(clusters)):
                     emax = 10.0 * e
                     ek = emax * (1.0 * e / emax) ** ((i + 1) / float(iters))
-                    dist = eucdist(clusters[mindex][0], clusters[k][0])
+                    dist = np.linalg.norm(clusters[mindex][0]-clusters[k][0], ord=norm)
                     phik = np.exp(-1.0 * (dist ** 2) / ((2 * std) ** 2))
                     clusters[k][0] += ek * phik *                             \
                             np.subtract(xs[j], clusters[k][0])
@@ -64,7 +64,7 @@ class KMap:
             mindex = 0
             mindist = float('inf')
             for j in range(len(clusters)):
-                d = eucdist(xs[i], clusters[j][0])
+                d = np.linalg.norm(xs[i]-clusters[j][0], ord=norm)
                 if d < mindist:
                     mindex = j
                     mindist = d
@@ -86,7 +86,7 @@ class KMap:
         for i in range(len(clusters)):
             pred0 = len([x for x in clusters[i][2] if x == 0])
             pred1 = len([x for x in clusters[i][2] if x == 1])
-            if eucdist(clusters[i][0], mean0) < eucdist(clusters[i][0], mean1):
+            if np.linalg.norm(clusters[i][0]-mean0, ord=norm) < np.linalg.norm(clusters[i][0]-mean1, ord=norm):
                 print('Cluster {} assigned to 0'.format(i))
                 assigned = 0
                 tnr = pred0 / num0s
