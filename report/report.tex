@@ -21,7 +21,9 @@
 
 There is lots of publicly available work for sentiment analysis of Twitter posts (e.g., \cite{TSA1}, \cite{TSA2}, \cite{TSA3}). More work has been done to isolate interests \cite{TIA1} or location \cite{TLA1} of known Twitter users. However, none of this work focuses on identifying potentially unknown Twitter users. At first glance, this may not seem like a worthwhile endeavour. After all, every Twitter user has a username, which provides some level of reduction of anonyminity without necesarilly compromising a real world identity. However, we believe this work could prove beneficial for a number of reasons, primarily ban circumvention detection and ``team post'' author identification. In the former case, author identification could be used to potentially identify users who have attempted to circumvent a ban via the creation of a new account by comparing unknown posts to those from the known, banned account. In the latter case, an individual writer on a social media team could be identified to, for example, locate the origin of a particularly offensive post.
 
-Machine learning is an obvious technique for attempting author identification. 
+Machine learning is an obvious technique for attempting author identification. However, there are questions about how well it works (and what methods to use) and what features to select from raw text, given that anything like natural language processing is beyond our capabilities. To this end, we examined several supervised (e.g., kNN and SVM) and unsupervise (e.g. k-Means) methods for machine learning and experimented with the features extracted from the text.
+
+The end result, explained in this document, is a complex examination methodology to address the pros and cons of various features and machine learning methods for author identification.
 
 \section{Approach}
 
