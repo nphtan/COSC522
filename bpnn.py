@@ -62,8 +62,9 @@ class Network(object):
                 self.update_mini_batch(mini_batch,eta)
             if test_data:
                 eva = self.evaluate(test_data)
+                pred = self.predict(test_data)
                 print("Epoch {0}: {1} / {2} = {3}".format(j,eva,n_test,eva/n_test))
-                return self.confusion_matrix(test_data)
+                return (self.confusion_matrix(test_data), pred)
             else:
                 print("Epoch {0} complete".format(j))
     	    
@@ -164,6 +165,16 @@ class Network(object):
     		nabla_b[-l] = delta
     		nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
     	return (nabla_b, nabla_w)
+    
+    def predict(self, test_data):
+        """Return the number of test inputs for which the neural
+        network outputs the correct result. Note that the neural
+        network's output is assumed to be the index of whichever
+        neuron in the final layer has the highest activation."""
+#        print('test_data shape', test_data[0][0].shape)
+        test_results = [(np.argmax(self.feedforward(x)), y)
+                       for (x, y) in test_data]
+        return test_results
     
     def evaluate(self, test_data):
         """Return the number of test inputs for which the neural

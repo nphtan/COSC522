@@ -27,7 +27,7 @@ class KMeans:
             x = data[:,i].reshape(self.mean.shape)
             data[:,i] = ((x - self.mean) / self.sigma).reshape(x.shape[0])
 
-    def predict(self, xs, test_labels, seed = 2):
+    def predict(self, xs, test_labels, seed = 2, norm=2):
         random.seed(seed)
         xs = xs.T
         clusters = []
@@ -55,7 +55,8 @@ class KMeans:
                 mindist = float('inf')
                 #print(pt)
                 for i in range(len(clusters)):
-                    d = eucdist(xs[h], clusters[i][0])
+#                    d = eucdist(xs[h], clusters[i][0])
+                    d = np.linalg.norm(xs[h]-clusters[i][0], ord=norm)
                     if d < mindist:
                         mindex = i
                         mindist = d
@@ -90,7 +91,8 @@ class KMeans:
         for i in range(len(clusters)):
             pred0 = len([x for x in clusters[i][2] if x == 0])
             pred1 = len([x for x in clusters[i][2] if x == 1])
-            if eucdist(clusters[i][0], mean0) < eucdist(clusters[i][0], mean1):
+#            if eucdist(clusters[i][0], mean0) < eucdist(clusters[i][0], mean1):
+            if np.linalg.norm(clusters[i][0]-mean0, ord=norm) < np.linalg.norm(clusters[i][0]-mean1, ord=norm):
                 print('Cluster {} assigned to 0'.format(i))
                 assigned = 0
                 tnr = pred0 / num0s
