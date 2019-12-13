@@ -51,11 +51,13 @@ Each learning method was run multiple times (with a parameter sweep where approp
 
 \section{Experiments}
 
-All experiments used for this work were written in Python 3. 
+All experiments used for this work were written in Python 3. Whereever possible, we canibalized code from our previous class assignments. The MPP case 1, 2, and 3 code came from  Project 1 \cite{Project1}. Code for k-Nearest-Neighbors, PCA, and FLD came from Project 2 \cite{Project2}. The backpropagating neural network code was adapted from Project 3 \cite{Project3}. Finally, Project 4 \cite{Project4} provided the framework for the unsupervised learning code (k-Means, winner-take-all, and Kohonen maps). Decision trees and SVM were implemented using SKLearn. Classifier fusion code was written from scratch for this project, as pre-existing code was written for a homework assignment and was found to be lacking for the purposes of this work.
 
 \section{Results}
 
 \section{Discussion}
+
+Using the features we selected, no learning model is ideal. While kNN and SVM+RBF provided decent results, accuracy that is only in the 70s as a best case is still not superb. As for the other models, the low-sensitivity high-specificity seen with the supervised techniques and the high-sensitivity low-specificity seen with the unsupervised techniques are not encouraging. After all, being able to tell that Donald Trump wrote something is not enough - you have to be able to tell if he DIDN'T write something, too. The failure of any one model to provide GOOD results highlights the complexity of this sort of work.
 
 \section{Appendix}
 
