@@ -733,9 +733,8 @@ def main():
         print('FN:',fn)
 
         pca = PCA()
-        pca.setup(train_features, 0.9)
-        print(pca.eigenvalues)
-        print(sum(pca.eigenvalues))
+        tol = 0.75
+        pca.setup(train_features, tol)
         pca_train_features = pca.reduce(train_features)
         pca_test_features = pca.reduce(test_features)
 
@@ -743,7 +742,7 @@ def main():
         ymodel = clf.predict(pca_test_features.T)
         prob = clf.predict_proba(pca_test_features.T)
         fper, tper, thresh = roc_curve(test_labels, prob[:,1], pos_label=1)
-        plot_roc(fper, tper, 'PCA')
+        plot_roc(fper, tper, 'PCA: tol='+str(tol))
         tp,tn,fn,fp = perf_eval(ymodel, test_labels)
         print('Accuracy:     ', (tp+tn)/(tp+tn+fp+fn))
         print('TP:',tp)
