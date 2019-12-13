@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  12 DEC 2019 14:32
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  12 DEC 2019 19:11
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -435,13 +435,13 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 31.
  [1] [2]
 (./report.bbl
-Underfull \hbox (badness 10000) in paragraph at lines 4--7
+Underfull \hbox (badness 10000) in paragraph at lines 36--39
 []\OT1/cmr/m/n/10.95 J. Lit-tiebrant, ``Raw twit-ter time-lines w/ no retweets.
 ''
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 4--7
+Underfull \hbox (badness 10000) in paragraph at lines 36--39
 \OT1/cmr/m/n/10.95 https://www.kaggle.com/speckledpingu/RawTwitterFeeds.
  []
 
@@ -449,24 +449,25 @@ Underfull \hbox (badness 10000) in paragraph at lines 4--7
 
 ] (./report.aux) ) 
 Here is how much of TeX's memory you used:
- 14295 strings out of 492616
- 261722 string characters out of 6129482
- 397795 words of memory out of 5000000
- 18150 multiletter control sequences out of 15000+600000
- 537824 words of font info for 43 fonts, out of 8000000 for 9000
+ 14303 strings out of 492616
+ 261784 string characters out of 6129482
+ 398795 words of memory out of 5000000
+ 18157 multiletter control sequences out of 15000+600000
+ 538170 words of font info for 44 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 42i,7n,63p,810b,317s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 42i,7n,63p,1094b,317s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfon
 ts/cm/cmbx10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfont
 s/cm/cmbx12.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts
 /cm/cmr10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/c
 m/cmr12.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/
 cmr17.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-sy10.pfb>
-Output written on report.pdf (5 pages, 80690 bytes).
+sy10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmt
+i10.pfb>
+Output written on report.pdf (5 pages, 100269 bytes).
 PDF statistics:
- 44 PDF objects out of 1000 (max. 8388607)
- 30 compressed objects within 1 object stream
+ 48 PDF objects out of 1000 (max. 8388607)
+ 33 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 
