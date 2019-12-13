@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  12 DEC 2019 21:18
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  13 DEC 2019 11:14
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -427,12 +427,12 @@ Package caption Info: End \AtBeginDocument code.
 
 {/usr/local/texlive/2019/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
 [1]
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 33.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 35.
  (/usr/local/texlive/2019/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 33.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 35.
  [1] [2]
 [3] (./report.bbl
 Underfull \hbox (badness 10000) in paragraph at lines 36--39
@@ -445,29 +445,71 @@ Underfull \hbox (badness 10000) in paragraph at lines 36--39
 \OT1/cmr/m/n/10.95 https://www.kaggle.com/speckledpingu/RawTwitterFeeds.
  []
 
-) [4
 
-] (./report.aux) ) 
+Underfull \hbox (badness 10000) in paragraph at lines 41--44
+[]\OT1/cmr/m/n/10.95 H. Qi, ``Two-category clas-si-fi-ca-tion us-ing baysian de
+-ci-sion
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 41--44
+\OT1/cmr/m/n/10.95 rules.'' http://web.eecs.utk.edu/ hqi/-cosc522/project/proj1
+.htm.
+ []
+
+
+Underfull \hbox (badness 6220) in paragraph at lines 46--49
+[]\OT1/cmr/m/n/10.95 H. Qi, ``Non-parametric clas-si-fi-ca-tion with di-men-sio
+n-al-ity re-
+ []
+
+
+Underfull \hbox (badness 6380) in paragraph at lines 46--49
+\OT1/cmr/m/n/10.95 duc-tion.'' http://web.eecs.utk.edu/ hqi/-cosc522/project/pr
+oj2.htm.
+ []
+
+
+Underfull \hbox (badness 3428) in paragraph at lines 51--54
+[]\OT1/cmr/m/n/10.95 H. Qi, ``Mnist digit recog-ni-tion us-ing multi-layer neu-
+ral net-
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 51--54
+\OT1/cmr/m/n/10.95 works.'' http://web.eecs.utk.edu/ hqi/-cosc522/project/proj3
+.htm.
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 56--59
+\OT1/cmr/m/n/10.95 ter-ing).'' http://web.eecs.utk.edu/ hqi/-cosc522/project/pr
+oj4.htm.
+ []
+
+[4
+
+]) [5] (./report.aux) ) 
 Here is how much of TeX's memory you used:
- 14303 strings out of 492616
- 261784 string characters out of 6129482
+ 14307 strings out of 492616
+ 261824 string characters out of 6129482
  397795 words of memory out of 5000000
- 18157 multiletter control sequences out of 15000+600000
+ 18161 multiletter control sequences out of 15000+600000
  538170 words of font info for 44 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  42i,7n,63p,1094b,317s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfon
-ts/cm/cmbx10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfont
-s/cm/cmbx12.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts
-/cm/cmr10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/c
-m/cmr12.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/
-cmr17.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-sy10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmt
-i10.pfb>
-Output written on report.pdf (6 pages, 100913 bytes).
+</usr/local/texlive/2019/texmf-dist/fonts/type1/public/a
+msfonts/cm/cmbx10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmbx12.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/ams
+fonts/cm/cmr10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmr12.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfont
+s/cm/cmr17.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmsy10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/c
+m/cmti10.pfb>
+Output written on report.pdf (7 pages, 102473 bytes).
 PDF statistics:
- 51 PDF objects out of 1000 (max. 8388607)
- 35 compressed objects within 1 object stream
+ 56 PDF objects out of 1000 (max. 8388607)
+ 39 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -1,4 +1,4 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
 \bibitem{TSA1}
 H.~Wang, D.~Can, A.~Kazemzadeh, F.~Bar, and S.~Narayanan, ``A system for
@@ -36,5 +36,25 @@ J.~Mahmud, J.~Nichols, and C.~Drews, ``Home location identification of twitter
 J.~Littiebrant, ``Raw twitter timelines w/ no retweets.''
   https://www.kaggle.com/speckledpingu/RawTwitterFeeds.
 \newblock Accessed:2019-12-12.
+
+\bibitem{Project1}
+H.~Qi, ``Two-category classification using baysian decision rules.''
+  http://web.eecs.utk.edu/~hqi/cosc522/project/proj1.htm.
+\newblock Accessed:2019-12-13.
+
+\bibitem{Project2}
+H.~Qi, ``Non-parametric classification with dimensionality reduction.''
+  http://web.eecs.utk.edu/~hqi/cosc522/project/proj2.htm.
+\newblock Accessed:2019-12-13.
+
+\bibitem{Project3}
+H.~Qi, ``Mnist digit recognition using multi-layer neural networks.''
+  http://web.eecs.utk.edu/~hqi/cosc522/project/proj3.htm.
+\newblock Accessed:2019-12-13.
+
+\bibitem{Project4}
+H.~Qi, ``Color image compression using unsupervised learning (clustering).''
+  http://web.eecs.utk.edu/~hqi/cosc522/project/proj4.htm.
+\newblock Accessed:2019-12-13.
 
 \end{thebibliography}
