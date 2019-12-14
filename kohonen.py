@@ -56,7 +56,7 @@ class KMap:
                 for k in range(len(clusters)):
                     emax = 10.0 * e
                     ek = emax * (1.0 * e / emax) ** ((i + 1) / float(iters))
-                    dist = np.linalg.norm(clusters[mindex][0]-clusters[k][0], ord=norm)
+                    dist = np.linalg.norm(np.array(clusters[mindex][0])-np.array(clusters[k][0]), ord=norm)
                     phik = np.exp(-1.0 * (dist ** 2) / ((2 * std) ** 2))
                     clusters[k][0] += ek * phik *                             \
                             np.subtract(xs[j], clusters[k][0])

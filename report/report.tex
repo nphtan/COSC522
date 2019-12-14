@@ -54,11 +54,73 @@ Each learning method was run multiple times (with a parameter sweep where approp
 
 All experiments used for this work were written in Python 3. Whereever possible, we canibalized code from our previous class assignments. The MPP case 1, 2, and 3 code came from  Project 1 \cite{Project1}. Code for k-Nearest-Neighbors, PCA, and FLD came from Project 2 \cite{Project2}. The backpropagating neural network code was adapted from Project 3 \cite{Project3}. Finally, Project 4 \cite{Project4} provided the framework for the unsupervised learning code (k-Means, winner-take-all, and Kohonen maps). Decision trees and SVM were implemented using SKLearn. Classifier fusion code was written from scratch for this project, as pre-existing code was written for a homework assignment and was found to be lacking for the purposes of this work.
 
+The following series of experiments were designed to highlight several factors of classification methods. How the prior probability ratios affect classification accuracy. The impact of different common Minkowski distances. The performance changes introduced by classifier fusion. How effective different dimension reduction methods with regards to classification accuracy.
+
 \section{Results}
+
+\begin{figure}[H]
+\begin{subfigure}[b]{0.5\linewidth}
+\includegraphics[width=7cm]{mpp_knn_fuse_sens.pdf}
+\caption{Sensitivity of MPP and KNN}
+\end{subfigure}
+\begin{subfigure}[b]{0.5\linewidth}
+\includegraphics[width=7cm]{mpp_knn_fuse_spec.pdf}
+\caption{Specificity of MPP and KNN}
+\end{subfigure}
+\caption{MPP and KNN performance both individual and fused with varying probability}
+\end{figure}
+
+\begin{figure}[H]
+\begin{subfigure}[b]{0.5\linewidth}
+\includegraphics[width=7cm]{sens_with_norms.png}
+\caption{Sensitivity of KNN, KMeans, Winner-take-all, and Kohonen Maps}
+\end{subfigure}
+\begin{subfigure}[b]{0.5\linewidth}
+\includegraphics[width=7cm]{spec_with_norms.png}
+\caption{Specificity of KNN, KMeans, Winner-take-all, and Kohonen Maps}
+\end{subfigure}
+\caption{Performance of KNN, KMeans, Winner-take-all, and Kohonen Maps with different Minkowski distances}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{knn_sens_spec_plot.png}
+\caption{kNN performance with varying k}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{decision_tree.png}
+\caption{Comparing Standardization vs FLD vs PCA for Decision Trees}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{svm_dim_reduction.png}
+\caption{Comparing Standardization vs FLD vs PCA (0.75 tolerance) for SVM using the rbf kernel}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{bpnn_dim_reduction.png}
+\caption{Comparing Standardization vs FLD vs PCA (0.75 tolerance) for Back propagating neural network (1 hidden layer with 10 neurosn, 1000 epochs, online training, and e=0.1)}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{svm_comparison.png}
+\caption{SVM with different kernels}
+\end{figure}
 
 \section{Discussion}
 
 Using the features we selected, no learning model is ideal. While kNN and SVM+RBF provided decent results, accuracy that is only in the 70s as a best case is still not superb. As for the other models, the low-sensitivity high-specificity seen with the supervised techniques and the high-sensitivity low-specificity seen with the unsupervised techniques are not encouraging. After all, being able to tell that Donald Trump wrote something is not enough - you have to be able to tell if he DIDN'T write something, too. The failure of any one model to provide GOOD results highlights the complexity of this sort of work.
+
+Varying the prior probability had somewhat expected effects. The sensitivity and specificity had near inverse relationships. All of the MPP cases had poor performance, barely crossing a coin flip in most cases. kNN on the other hand had significantly better performance. Classifier fusion between the various methods had limited and unpredictable benefits. In general fusing the different MPP classifiers with kNN resulted in better performance than MPP by itself but inferior compared to kNN. This highlights how the features selected do not form a nicely structure gaussian distribution. kNN had much better results but is much more computationally expensive. One nice factor about kNN is how easily it is to test different numbers of neighbors. Figure 3 clearly shows that with larger k values the performance improves.
+
+Changing the distance metric for kNN, KMeans, Winner-take-all, and Kohonen Maps has little benefit compared to the standard 2 norm distance. kNN in particular was completely unaffected by the different metric choice. The further tests with decision trees, back propagating neural networks, and support vector machines highlight how FLD has little benefit while the data set is extremely lopsided with regards to features. Even with a 0.75 tolerance the standard and PCA results are nearly identical across the board.
+
+SVM was interesting as the kernel choice had a significant affect on the performance based on how well it matched the data. One thing that was immediately apparent is how the supervised methods with MPP as the exception performed far better than the unsupervised methods.  
 
 \section{Appendix}
 

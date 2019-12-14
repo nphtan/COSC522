@@ -47,11 +47,11 @@ class PCA:
         self.eigenvalues = eigval
         self.eigenvectors = eigvec
         n = x.shape[0]
-        print(n)
+#        print(n)
         while np.sum(eigval[0:n])/eigsum > self.tol:
             n -= 1
         n+=1
-        print(n)
+#        print(n)
         self.w = eigvec[:,0:n]
 
     def reduce(self, data):
